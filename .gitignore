@@ -1,0 +1,10 @@
+# Ignore data folder
+data/
+models/
+
+# Optional: ignore virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
