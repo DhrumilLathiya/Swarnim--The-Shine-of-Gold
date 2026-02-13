@@ -1,6 +1,6 @@
 import express from "express";
-import { getUserGenerations } from "../models/Generation.js";
-import { getUserById, updateUser } from "../models/User.js";
+import { getUserGenerations } from "../model/Generation.js";
+import { getUserById, updateUser } from "../model/User.js";
 import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
