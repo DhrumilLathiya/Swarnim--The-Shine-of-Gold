@@ -1,12 +1,11 @@
 import express from "express";
 import { authenticateToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
-import { getAllUsers } from "../models/User.js";
-import {
-  createJewellery,
-  updateJewellery,
-  deleteJewellery,
-} from "../models/Jewellery.js";
+import { supabase } from "../config/database.js";
+
+import { fetchGoldRate } from "../services/goldRateService.js";
+import { getDiamondRate } from "../services/diamondRateService.js";
+import { calculateFinalPrice } from "../services/pricingService.js";
 
 const router = express.Router();
 
@@ -18,56 +17,10 @@ const router = express.Router();
  */
 
 /**
- * ======================================================
- * GET ALL USERS (ADMIN ONLY)
- * ======================================================
- */
-/**
- * @swagger
- * /admin/users:
- *   get:
- *     summary: Get all users (Admin only)
- *     tags: [Admin]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: List of users
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden (Admin only)
- */
-router.get(
-  "/users",
-  authenticateToken,
-  authorizeRoles("ADMIN"),
-  async (req, res) => {
-    try {
-      const users = await getAllUsers();
-      return res.json({
-        count: users.length,
-        users,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        error: "Internal server error",
-        detail: error.message,
-      });
-    }
-  }
-);
-
-/**
- * ======================================================
- * CREATE JEWELLERY (ADMIN ONLY)
- * ======================================================
- */
-/**
  * @swagger
  * /admin/jewellery:
  *   post:
- *     summary: Create jewellery (Admin only)
+ *     summary: Create jewellery product with live pricing (Admin only)
  *     tags: [Admin]
  *     security:
  *       - BearerAuth: []
@@ -78,34 +31,53 @@ router.get(
  *           schema:
  *             type: object
  *             required:
- *               - title
- *               - type
- *               - material
- *               - price
+ *               - product_name
+ *               - category
+ *               - sku
+ *               - metal_type
+ *               - purity
+ *               - metal_weight
+ *               - making_charges
+ *               - stock_quantity
+ *               - availability
  *             properties:
- *               title:
+ *               product_name:
  *                 type: string
- *                 example: Diamond Ring
- *               type:
+ *               category:
  *                 type: string
- *                 example: ring
- *               material:
+ *               sku:
  *                 type: string
- *                 example: gold
- *               price:
+ *               metal_type:
+ *                 type: string
+ *               purity:
+ *                 type: string
+ *               metal_weight:
  *                 type: number
- *                 example: 75000
- *               image_url:
+ *               diamond_weight:
+ *                 type: number
+ *               diamond_quality:
  *                 type: string
- *                 example: https://example.com/ring.jpg
+ *               making_charges:
+ *                 type: number
+ *               discount:
+ *                 type: number
+ *               stock_quantity:
+ *                 type: integer
+ *               availability:
+ *                 type: string
  *               description:
  *                 type: string
- *                 example: Luxury diamond ring
+ *               image_url:
+ *                 type: string
  *     responses:
  *       201:
- *         description: Jewellery created successfully
+ *         description: Product created successfully
  *       400:
  *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Admin only
  */
 router.post(
   "/jewellery",
@@ -113,153 +85,148 @@ router.post(
   authorizeRoles("ADMIN"),
   async (req, res) => {
     try {
-      const { title, type, material, price, image_url, description } =
-        req.body;
+      const {
+        product_name,
+        category,
+        sku,
+        metal_type,
+        purity,
+        metal_weight,
+        diamond_weight = 0,
+        diamond_quality = "VVS1",
+        making_charges,
+        discount = 0,
+        stock_quantity,
+        availability,
+        description,
+        image_url
+      } = req.body;
 
-      if (!title || !type || !material || !price) {
+      // ---------------------------
+      // VALIDATION
+      // ---------------------------
+      if (
+        !product_name ||
+        !category ||
+        !sku ||
+        !metal_type ||
+        !purity ||
+        metal_weight == null ||
+        making_charges == null ||
+        stock_quantity == null ||
+        !availability
+      ) {
         return res.status(400).json({
           error: "Validation error",
-          detail: "title, type, material and price are required",
+          detail: "Missing required fields"
         });
       }
 
-      const jewellery = await createJewellery({
-        title,
-        type,
-        material,
-        price,
-        image_url,
-        description,
+      // ---------------------------
+      // TYPE CASTING
+      // ---------------------------
+      const numericMetalWeight = Number(metal_weight);
+      const numericDiamondWeight = Number(diamond_weight);
+      const numericMakingCharges = Number(making_charges);
+      const numericDiscount = Number(discount);
+      const numericStockQuantity = Number(stock_quantity);
+
+      if (
+        isNaN(numericMetalWeight) ||
+        isNaN(numericDiamondWeight) ||
+        isNaN(numericMakingCharges) ||
+        isNaN(numericDiscount) ||
+        isNaN(numericStockQuantity)
+      ) {
+        return res.status(400).json({
+          error: "Validation error",
+          detail: "Numeric fields contain invalid values"
+        });
+      }
+
+      console.log("🟢 Creating product:", product_name);
+
+      // ---------------------------
+      // FETCH GOLD RATE
+      // ---------------------------
+      const metalPricePerGram = await fetchGoldRate(purity);
+      console.log("Gold Rate Used:", metalPricePerGram);
+
+      // ---------------------------
+      // FETCH DIAMOND RATE
+      // ---------------------------
+      let diamondPricePerCarat = 0;
+
+      if (numericDiamondWeight > 0) {
+        diamondPricePerCarat = await getDiamondRate(diamond_quality);
+      }
+
+      console.log("Diamond Rate Used:", diamondPricePerCarat);
+
+      // ---------------------------
+      // CALCULATE FINAL PRICE
+      // ---------------------------
+      const pricing = calculateFinalPrice({
+        metalPricePerGram,
+        metalWeight: numericMetalWeight,
+        diamondPricePerCarat,
+        diamondWeight: numericDiamondWeight,
+        makingCharges: numericMakingCharges,
+        discount: numericDiscount
       });
+
+      console.log("Pricing Breakdown:", pricing);
+
+      if (
+        pricing.finalPrice == null ||
+        isNaN(pricing.finalPrice)
+      ) {
+        throw new Error("Final price calculation failed");
+      }
+
+      // ---------------------------
+      // INSERT INTO DATABASE
+      // ---------------------------
+      const { data, error } = await supabase
+        .from("jewellery_products")
+        .insert({
+          product_name,
+          category,
+          sku,
+          metal_type,
+          purity,
+          metal_weight: numericMetalWeight,
+          diamond_weight: numericDiamondWeight,
+          making_charges: numericMakingCharges,
+          discount: numericDiscount,
+          metal_price_per_gram: metalPricePerGram,
+          diamond_price_per_carat: diamondPricePerCarat,
+          final_price: pricing.finalPrice,
+          stock_quantity: numericStockQuantity,
+          availability,
+          description,
+          image_url,
+          created_by: req.user.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("DB Insert Error:", error.message);
+        throw error;
+      }
 
       return res.status(201).json({
-        message: "Jewellery created successfully",
-        jewellery,
+        message: "Product created successfully",
+        pricing_breakdown: pricing,
+        product: data
       });
+
     } catch (error) {
+      console.error("Create Product Error:", error.message);
       return res.status(500).json({
         error: "Internal server error",
-        detail: error.message,
-      });
-    }
-  }
-);
-
-/**
- * ======================================================
- * UPDATE JEWELLERY (ADMIN ONLY)
- * ======================================================
- */
-/**
- * @swagger
- * /admin/jewellery/{id}:
- *   put:
- *     summary: Update jewellery (Admin only)
- *     tags: [Admin]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               type:
- *                 type: string
- *               material:
- *                 type: string
- *               price:
- *                 type: number
- *               image_url:
- *                 type: string
- *               description:
- *                 type: string
- *     responses:
- *       200:
- *         description: Jewellery updated successfully
- *       400:
- *         description: Validation error
- */
-router.put(
-  "/jewellery/:id",
-  authenticateToken,
-  authorizeRoles("ADMIN"),
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-      const updates = req.body;
-
-      if (!updates || Object.keys(updates).length === 0) {
-        return res.status(400).json({
-          error: "Validation error",
-          detail: "Request body cannot be empty",
-        });
-      }
-
-      const jewellery = await updateJewellery(id, updates);
-
-      return res.json({
-        message: "Jewellery updated successfully",
-        jewellery,
-      });
-    } catch (error) {
-      return res.status(500).json({
-        error: "Internal server error",
-        detail: error.message,
-      });
-    }
-  }
-);
-
-/**
- * ======================================================
- * DELETE JEWELLERY (ADMIN ONLY)
- * ======================================================
- */
-/**
- * @swagger
- * /admin/jewellery/{id}:
- *   delete:
- *     summary: Delete jewellery (Admin only)
- *     tags: [Admin]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Jewellery deleted successfully
- */
-router.delete(
-  "/jewellery/:id",
-  authenticateToken,
-  authorizeRoles("ADMIN"),
-  async (req, res) => {
-    try {
-      const { id } = req.params;
-
-      await deleteJewellery(id);
-
-      return res.json({
-        message: "Jewellery deleted successfully",
-      });
-    } catch (error) {
-      return res.status(500).json({
-        error: "Internal server error",
-        detail: error.message,
+        detail: error.message
       });
     }
   }

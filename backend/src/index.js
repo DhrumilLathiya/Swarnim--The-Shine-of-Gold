@@ -3,6 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
+import cartRoutes from "./routes/cart.js";
+import orderRoutes from "./routes/order.js";
+
 
 import { config } from "./config/index.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
@@ -13,8 +16,8 @@ import jewelleryRoutes from "./routes/jewellery.js";
 import userRoutes from "./routes/user.js";
 import aiRoutes from "./routes/ai.js";
 import adminRoutes from "./routes/admin.js";
+import productRoutes from "./routes/productRoutes.js";
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
@@ -51,17 +54,11 @@ const swaggerOptions = {
         },
       },
     },
-    security: [
-      {
-        BearerAuth: [],
-      },
-    ],
   },
   apis: ["./src/routes/*.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // =============================
@@ -80,16 +77,23 @@ app.get("/health", (req, res) => {
 });
 
 // =============================
-// API Routes
+// API Routes (ORDER MATTERS)
 // =============================
 app.use("/auth", authRoutes);
 app.use("/jewellery", jewelleryRoutes);
 app.use("/user", userRoutes);
 app.use("/ai", aiRoutes);
 app.use("/admin", adminRoutes);
+app.use("/cart", cartRoutes);
+app.use("/orders", orderRoutes);
+
+
+
+// 👇 Mount product route BEFORE error handlers
+app.use("/", productRoutes);
 
 // =============================
-// Error Handling
+// Error Handling (MUST BE LAST)
 // =============================
 app.use(notFoundHandler);
 app.use(errorHandler);
