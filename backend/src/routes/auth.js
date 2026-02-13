@@ -1,6 +1,6 @@
 import express from "express";
 import { hashPassword, verifyPassword, createAccessToken } from "../utils/auth.js";
-import { getUserByEmail, createUser } from "../models/User.js";
+import { getUserByEmail, createUser } from "../model/User.js";
 
 const router = express.Router();
 
