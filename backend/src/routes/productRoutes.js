@@ -60,6 +60,7 @@ router.get("/products", async (req, res) => {
         final_price,
         image_url,
         availability,
+        collection_tag,
         created_at
         `,
         { count: "exact" }
@@ -92,5 +93,45 @@ router.get("/products", async (req, res) => {
   }
 });
 
+
+
+/**
+ * @swagger
+ * /products/{id}:
+ *   get:
+ *     summary: Get a single product by ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Product details
+ *       404:
+ *         description: Product not found
+ */
+router.get("/products/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("jewellery_products")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    return res.json(data);
+  } catch (error) {
+    console.error("Get Product By ID Error:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 export default router;

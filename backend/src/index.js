@@ -1,38 +1,51 @@
-import dotenv from "dotenv";
-dotenv.config();
-console.log("SECRET_KEY:", process.env.SECRET_KEY);
+// =============================
+// Load ENV FIRST (VERY IMPORTANT)
+// =============================
+import "dotenv/config";
 
 import express from "express";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
-import cartRoutes from "./routes/cart.js";
-import orderRoutes from "./routes/order.js";
 
-
+// =============================
+// Config + Middleware
+// =============================
 import { config } from "./config/index.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
+// =============================
 // Routes
+// =============================
 import authRoutes from "./routes/auth.js";
 import jewelleryRoutes from "./routes/jewellery.js";
 import userRoutes from "./routes/user.js";
 import aiRoutes from "./routes/ai.js";
 import adminRoutes from "./routes/admin.js";
 import productRoutes from "./routes/productRoutes.js";
-
+import cartRoutes from "./routes/cart.js";
+import orderRoutes from "./routes/order.js";
+import uploadRoutes from "./routes/upload.js"; // Import upload route
 
 const app = express();
+
+// =============================
+// DEBUG ENV (REMOVE IN PROD)
+// =============================
+console.log("JWT SECRET =", process.env.SECRET_KEY ? "Loaded ✅" : "Missing ❌");
 
 // =============================
 // Middleware
 // =============================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: ["http://localhost:8080", "http://localhost:5173"], // Allow frontend ports
+  credentials: true
+}));
 
 // =============================
-// Swagger Configuration
+// Swagger Config
 // =============================
 const swaggerOptions = {
   definition: {
@@ -44,7 +57,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port || 3000}`,
+        url: `http://localhost:${config.port}`,
       },
     ],
     components: {
@@ -79,7 +92,7 @@ app.get("/health", (req, res) => {
 });
 
 // =============================
-// API Routes (ORDER MATTERS)
+// API Routes
 // =============================
 app.use("/auth", authRoutes);
 app.use("/jewellery", jewelleryRoutes);
@@ -88,14 +101,13 @@ app.use("/ai", aiRoutes);
 app.use("/admin", adminRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", orderRoutes);
-
-
-
-// 👇 Mount product route BEFORE error handlers
+app.use("/orders", orderRoutes);
 app.use("/", productRoutes);
+app.use("/upload", uploadRoutes); // Register upload route
+app.use("/uploads", express.static("uploads")); // Serve static files
 
 // =============================
-// Error Handling (MUST BE LAST)
+// Error Handling (LAST)
 // =============================
 app.use(notFoundHandler);
 app.use(errorHandler);
@@ -106,9 +118,11 @@ app.use(errorHandler);
 const PORT = config.port || 3000;
 
 app.listen(PORT, () => {
+  console.log("==================================");
   console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
-  console.log(`Environment: ${config.nodeEnv}`);
+  console.log(`📚 API Docs → http://localhost:${PORT}/api-docs`);
+  console.log(`🌍 Environment → ${config.nodeEnv}`);
+  console.log("==================================");
 });
 
 export default app;
