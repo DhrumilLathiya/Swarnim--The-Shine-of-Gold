@@ -1,8 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-const SECRET = process.env.SECRET_KEY;
-
 /**
  * Hash password
  */
@@ -22,7 +20,13 @@ export const verifyPassword = async (password, hash) => {
  * Create JWT access token
  */
 export const createAccessToken = (payload) => {
-  return jwt.sign(payload, SECRET, {
+  const secret = process.env.SECRET_KEY;
+
+  if (!secret) {
+    throw new Error("SECRET_KEY is missing in environment variables");
+  }
+
+  return jwt.sign(payload, secret, {
     expiresIn: "1d",
   });
 };
@@ -31,7 +35,13 @@ export const createAccessToken = (payload) => {
  * Verify JWT token
  */
 export const verifyToken = (token) => {
-  return jwt.verify(token, SECRET);
+  const secret = process.env.SECRET_KEY;
+
+  if (!secret) {
+    throw new Error("SECRET_KEY is missing in environment variables");
+  }
+
+  return jwt.verify(token, secret);
 };
 
 /**

@@ -1,6 +1,9 @@
+import dotenv from "dotenv";
+dotenv.config();
+console.log("SECRET_KEY:", process.env.SECRET_KEY);
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 import cartRoutes from "./routes/cart.js";
@@ -18,7 +21,6 @@ import aiRoutes from "./routes/ai.js";
 import adminRoutes from "./routes/admin.js";
 import productRoutes from "./routes/productRoutes.js";
 
-dotenv.config();
 
 const app = express();
 
