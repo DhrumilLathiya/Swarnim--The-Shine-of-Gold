@@ -6,7 +6,7 @@ import {
   updateJewellery,
   deleteJewellery,
   searchJewellery,
-} from "../model/Jewellery.js";
+} from "../models/Jewellery.js";
 import { authenticateToken, adminRequired } from "../middleware/auth.js";
 
 const router = express.Router();

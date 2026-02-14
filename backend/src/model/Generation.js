@@ -11,12 +11,12 @@ export const createGeneration = async ({
   ai_result = null,
   status = "pending",
 }) => {
-  const generationId = uuidv4(); 
+  const generationId = uuidv4();
 
   const { data, error } = await supabase
     .from("generation_history")
     .insert([
-      { 
+      {
         id: generationId,
         user_id,
         uploaded_image_url,
@@ -128,7 +128,7 @@ export const deleteGeneration = async (generationId) => {
 export default {
   createGeneration,
   getUserGenerations,
-  getGenerationById,  
+  getGenerationById,
   updateGeneration,
   getAllGenerations,
   deleteGeneration,

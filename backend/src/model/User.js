@@ -15,7 +15,7 @@ export const getUserById = async (userId) => {
     throw new Error(`Failed to fetch user: ${error.message}`);
   }
 
-  return data;   
+  return data;
 };
 
 /**
@@ -94,4 +94,20 @@ export const getAllUsers = async () => {
   }
 
   return data;
+};
+
+/**
+ * Delete a user by ID (for rollback)
+ */
+export const deleteUser = async (userId) => {
+  const { error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(`Failed to delete user: ${error.message}`);
+  }
+
+  return true;
 };
