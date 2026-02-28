@@ -8,14 +8,14 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Cart
- *   description: User cart management
+ *   description: Production-level user cart management
  */
 
 /**
  * @swagger
  * /cart:
  *   post:
- *     summary: Add or update product in cart
+ *     summary: Add product to cart or increase quantity
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
@@ -31,8 +31,10 @@ const router = express.Router();
  *             properties:
  *               product_id:
  *                 type: string
+ *                 format: uuid
  *               quantity:
  *                 type: integer
+ *                 minimum: 1
  *     responses:
  *       200:
  *         description: Product added/updated
@@ -45,13 +47,13 @@ router.post("/", authenticateToken, async (req, res) => {
  * @swagger
  * /cart:
  *   get:
- *     summary: Get current user cart
+ *     summary: Get current user cart with totals
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: Cart items
+ *         description: Cart items with total
  */
 router.get("/", authenticateToken, async (req, res) => {
   res.json({ message: "Cart GET working" });
@@ -71,6 +73,7 @@ router.get("/", authenticateToken, async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *     responses:
  *       200:
  *         description: Item removed

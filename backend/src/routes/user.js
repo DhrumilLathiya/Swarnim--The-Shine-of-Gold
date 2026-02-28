@@ -9,20 +9,20 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: User
- *   description: User profile and history endpoints
+ *   description: User profile and history management
  */
 
 /**
  * @swagger
  * /user/me:
  *   get:
- *     summary: Get current user profile
+ *     summary: Get current logged-in user's profile
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: User profile data
+ *         description: User profile retrieved successfully
  *       401:
  *         description: Unauthorized
  *       404:
@@ -36,19 +36,18 @@ router.get("/me", authenticateToken, async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        error: "Not found",
-        detail: "User not found",
+        error: "User not found"
       });
     }
 
-    const { password, ...userWithoutPassword } = user;
+    delete user.password;
 
-    return res.json(userWithoutPassword);
+    return res.status(200).json(user);
+
   } catch (error) {
-    console.error("Error fetching user profile:", error);
     return res.status(500).json({
       error: "Internal server error",
-      detail: error.message,
+      detail: error.message
     });
   }
 });
@@ -57,7 +56,7 @@ router.get("/me", authenticateToken, async (req, res) => {
  * @swagger
  * /user/me:
  *   put:
- *     summary: Update current user profile
+ *     summary: Update current user's profile
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
@@ -70,10 +69,11 @@ router.get("/me", authenticateToken, async (req, res) => {
  *             properties:
  *               name:
  *                 type: string
- *                 example: Raj Mehta Updated
+ *                 example: Raj Mehta
  *               email:
  *                 type: string
- *                 example: raj.new@example.com
+ *                 format: email
+ *                 example: raj@example.com
  *     responses:
  *       200:
  *         description: Profile updated successfully
@@ -85,32 +85,53 @@ router.get("/me", authenticateToken, async (req, res) => {
 router.put("/me", authenticateToken, async (req, res) => {
   try {
     const { user_id } = req.user;
-    const { name, email } = req.body;
+    let { name, email } = req.body;
 
     const updates = {};
-    if (name) updates.name = name;
-    if (email) updates.email = email;
+
+    if (name) {
+      name = name.trim();
+
+      if (name.length < 2 || name.length > 100) {
+        return res.status(400).json({
+          error: "Name must be between 2 and 100 characters"
+        });
+      }
+
+      updates.name = name;
+    }
+
+    if (email) {
+      email = email.trim().toLowerCase();
+
+      if (!validator.isEmail(email)) {
+        return res.status(400).json({
+          error: "Invalid email format"
+        });
+      }
+
+      updates.email = email;
+    }
 
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
-        error: "Validation error",
-        detail: "At least one field (name or email) is required",
+        error: "At least one valid field (name or email) is required"
       });
     }
 
-    const user = await updateUser(user_id, updates);
+    const updatedUser = await updateUser(user_id, updates);
 
-    const { password, ...userWithoutPassword } = user;
+    delete updatedUser.password;
 
-    return res.json({
+    return res.status(200).json({
       message: "Profile updated successfully",
-      user: userWithoutPassword,
+      user: updatedUser
     });
+
   } catch (error) {
-    console.error("Error updating user profile:", error);
     return res.status(500).json({
       error: "Internal server error",
-      detail: error.message,
+      detail: error.message
     });
   }
 });
@@ -119,7 +140,7 @@ router.put("/me", authenticateToken, async (req, res) => {
  * @swagger
  * /user/my-generations:
  *   get:
- *     summary: Get current user's generation history
+ *     summary: Get current user's AI generation history
  *     tags: [User]
  *     security:
  *       - BearerAuth: []
@@ -128,35 +149,40 @@ router.put("/me", authenticateToken, async (req, res) => {
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Number of records to return
+ *           default: 20
+ *         description: Number of records to return (max 100)
  *       - in: query
  *         name: offset
  *         schema:
  *           type: integer
+ *           default: 0
  *         description: Offset for pagination
  *     responses:
  *       200:
- *         description: Generation history
+ *         description: Generation history retrieved successfully
  *       401:
  *         description: Unauthorized
  */
 router.get("/my-generations", authenticateToken, async (req, res) => {
   try {
     const { user_id } = req.user;
-    const limit = parseInt(req.query.limit) || 50;
+
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
     const offset = parseInt(req.query.offset) || 0;
 
     const generations = await getUserGenerations(user_id, limit, offset);
 
-    return res.json({
+    return res.status(200).json({
       count: generations.length,
-      generations,
+      limit,
+      offset,
+      generations
     });
+
   } catch (error) {
-    console.error("Error fetching user generations:", error);
     return res.status(500).json({
       error: "Internal server error",
-      detail: error.message,
+      detail: error.message
     });
   }
 });

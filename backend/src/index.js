@@ -22,6 +22,13 @@ import jewelleryRoutes from "./routes/jewellery.js";
 import userRoutes from "./routes/user.js";
 import aiRoutes from "./routes/ai.js";
 import adminRoutes from "./routes/admin.js";
+import cartRoutes from "./routes/cart.js";
+import orderRoutes from "./routes/order.js";
+import notificationRoutes from "./routes/notification.js";
+import wishlistRoutes from "./routes/wishlist.js";
+import reviewsRoutes from "./routes/reviews.js";
+import ratesRoutes from "./routes/rates.js";
+import productVariantRoutes from "./routes/productVariant.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cart.js";
 import orderRoutes from "./routes/order.js";
@@ -37,6 +44,7 @@ console.log("JWT SECRET =", process.env.SECRET_KEY ? "Loaded ✅" : "Missing ❌
 // =============================
 // Middleware
 // =============================
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
@@ -53,7 +61,7 @@ const swaggerOptions = {
     info: {
       title: "Swarnim Jewellery AI API",
       version: "1.0.0",
-      description: "Backend API documentation for Swarnim AI platform",
+      description: "Backend API documentation for Swarnim AI platform"
     },
     servers: [
       {
@@ -65,12 +73,12 @@ const swaggerOptions = {
         BearerAuth: {
           type: "http",
           scheme: "bearer",
-          bearerFormat: "JWT",
-        },
-      },
-    },
+          bearerFormat: "JWT"
+        }
+      }
+    }
   },
-  apis: ["./src/routes/*.js"],
+  apis: ["./src/routes/*.js"]
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -86,19 +94,25 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    message: "Server is healthy",
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   });
 });
 
 // =============================
 // API Routes
 // =============================
+
+// Authentication
 app.use("/auth", authRoutes);
+
+// Core Catalogue
 app.use("/jewellery", jewelleryRoutes);
+app.use("/product-variants", productVariantRoutes);   // ✅ FIXED NAME
+app.use("/rates", ratesRoutes);
+
+// User Operations
 app.use("/user", userRoutes);
-app.use("/ai", aiRoutes);
-app.use("/admin", adminRoutes);
+app.use("/wishlist", wishlistRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", orderRoutes);
 app.use("/orders", orderRoutes);
