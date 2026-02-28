@@ -25,13 +25,23 @@ import reviewsRoutes from "./routes/reviews.js";
 import ratesRoutes from "./routes/rates.js";
 import productVariantRoutes from "./routes/productVariant.js";
 import productRoutes from "./routes/productRoutes.js";
+import productImagesRoutes from "./routes/productImages.js";
 
 const app = express();
 
 // =============================
 // Core Middleware
 // =============================
-app.use(cors());
+console.log("JWT SECRET =", process.env.SECRET_KEY ? "Loaded ✅" : "Missing ❌");
+
+// =============================
+// Middleware
+// =============================
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -48,8 +58,8 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port || 3000}`
-      }
+        url: `http://localhost:${config.port || 3000}`,
+      },
     ],
     components: {
       securitySchemes: {
@@ -92,6 +102,8 @@ app.use("/auth", authRoutes);
 app.use("/jewellery", jewelleryRoutes);
 app.use("/product-variants", productVariantRoutes);   // ✅ FIXED NAME
 app.use("/rates", ratesRoutes);
+app.use("/products", productRoutes);
+app.use("/product-images", productImagesRoutes);
 
 // User Operations
 app.use("/user", userRoutes);

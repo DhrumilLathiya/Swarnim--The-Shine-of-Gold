@@ -8,14 +8,18 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Cart
- *   description: Production-level user cart management
+ *   description: Variant-based cart system
  */
+
+/* ==========================================================
+   1️⃣ ADD / UPDATE CART ITEM
+========================================================== */
 
 /**
  * @swagger
  * /cart:
  *   post:
- *     summary: Add product to cart or increase quantity
+ *     summary: Add variant to cart or increase quantity
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
@@ -23,86 +27,75 @@ const router = express.Router();
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - product_id
- *               - quantity
- *             properties:
- *               product_id:
- *                 type: string
- *                 format: uuid
- *               quantity:
- *                 type: integer
- *                 minimum: 1
+ *           example:
+ *             product_id: "PRODUCT_UUID"
+ *             variant_id: "VARIANT_UUID"
+ *             quantity: 1
  *     responses:
  *       200:
- *         description: Cart updated successfully
+ *         description: Cart updated
  */
 router.post("/", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
-    const { product_id, quantity } = req.body;
+    const { product_id, variant_id, quantity } = req.body;
 
-    if (!product_id || !quantity || quantity <= 0) {
+    if (!product_id || !variant_id || !quantity || quantity <= 0) {
       return res.status(400).json({
-        error: "Invalid product or quantity"
+        error: "product_id, variant_id and valid quantity required"
       });
     }
 
-    // 1️⃣ Fetch product
-    const { data: product, error: productError } = await supabase
-      .from("jewellery_products")
-      .select("id, final_price, stock_quantity")
-      .eq("id", product_id)
+    // Fetch variant (source of truth for stock)
+    const { data: variant, error: variantError } = await supabase
+      .from("product_variants")
+      .select("id, stock_quantity, additional_price")
+      .eq("id", variant_id)
+      .eq("is_active", true)
       .single();
 
-    if (productError || !product) {
-      return res.status(404).json({ error: "Product not found" });
+    if (variantError || !variant) {
+      return res.status(404).json({ error: "Variant not found" });
     }
 
-    // 2️⃣ Check existing cart item
+    if (quantity > variant.stock_quantity) {
+      return res.status(400).json({
+        error: "Requested quantity exceeds available stock"
+      });
+    }
+
+    // Check if already exists in cart
     const { data: existingItem } = await supabase
       .from("cart_items")
       .select("*")
       .eq("user_id", user_id)
-      .eq("product_id", product_id)
-      .single();
+      .eq("variant_id", variant_id)
+      .maybeSingle();
 
     if (existingItem) {
       const newQuantity = existingItem.quantity + quantity;
 
-      if (newQuantity > product.stock_quantity) {
+      if (newQuantity > variant.stock_quantity) {
         return res.status(400).json({
-          error: "Requested quantity exceeds stock"
+          error: "Requested quantity exceeds available stock"
         });
       }
 
-      const { error: updateError } = await supabase
+      await supabase
         .from("cart_items")
         .update({ quantity: newQuantity })
-        .eq("user_id", user_id)
-        .eq("product_id", product_id);
-
-      if (updateError) throw updateError;
+        .eq("id", existingItem.id);
 
     } else {
-      if (quantity > product.stock_quantity) {
-        return res.status(400).json({
-          error: "Requested quantity exceeds stock"
-        });
-      }
-
-      const { error: insertError } = await supabase
+      await supabase
         .from("cart_items")
         .insert([{
           user_id,
           product_id,
+          variant_id,
           quantity,
-          price_snapshot: product.final_price
+          price_snapshot: variant.additional_price || 0
         }]);
-
-      if (insertError) throw insertError;
     }
 
     return res.status(200).json({
@@ -117,17 +110,19 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
+
+/* ==========================================================
+   2️⃣ GET CART
+========================================================== */
+
 /**
  * @swagger
  * /cart:
  *   get:
- *     summary: Get current user cart with totals
+ *     summary: Get current user's cart
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Cart items with total
  */
 router.get("/", authenticateToken, async (req, res) => {
   try {
@@ -139,11 +134,18 @@ router.get("/", authenticateToken, async (req, res) => {
         id,
         quantity,
         price_snapshot,
+        product_id,
+        variant_id,
         jewellery_products (
           id,
-          product_name,
-          final_price,
-          stock_quantity
+          title,
+          image_url
+        ),
+        product_variants (
+          sku,
+          metal_type,
+          purity,
+          size
         )
       `)
       .eq("user_id", user_id);
@@ -169,35 +171,37 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
+
+/* ==========================================================
+   3️⃣ REMOVE ITEM FROM CART
+========================================================== */
+
 /**
  * @swagger
- * /cart/{product_id}:
+ * /cart/{variant_id}:
  *   delete:
- *     summary: Remove item from cart
+ *     summary: Remove variant from cart
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: product_id
+ *         name: variant_id
  *         required: true
  *         schema:
  *           type: string
  *           format: uuid
- *     responses:
- *       200:
- *         description: Item removed from cart
  */
-router.delete("/:product_id", authenticateToken, async (req, res) => {
+router.delete("/:variant_id", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
-    const { product_id } = req.params;
+    const { variant_id } = req.params;
 
     const { data, error } = await supabase
       .from("cart_items")
       .delete()
       .eq("user_id", user_id)
-      .eq("product_id", product_id)
+      .eq("variant_id", variant_id)
       .select();
 
     if (error) throw error;
