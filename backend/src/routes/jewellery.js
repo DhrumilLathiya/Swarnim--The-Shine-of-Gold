@@ -1,191 +1,344 @@
 import express from "express";
-import {
-  getAllJewellery,
-  getJewelleryById,
-  createJewellery,
-  updateJewellery,
-  deleteJewellery,
-  searchJewellery,
-} from "../model/Jewellery.js";
-import { authenticateToken, adminRequired } from "../middleware/auth.js";
+import { supabase } from "../config/database.js";
+import { authenticateToken } from "../middleware/auth.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
 /**
- * GET /jewellery
- * Get all jewellery items with pagination
+ * @swagger
+ * tags:
+ *   name: Jewellery
+ *   description: Jewellery catalogue management (Design level)
+ */
+
+
+/**
+ * ==========================================================
+ * 1️⃣ GET ALL JEWELLERY (Public)
+ * ==========================================================
+ */
+
+/**
+ * @swagger
+ * /jewellery:
+ *   get:
+ *     summary: Get all active jewellery (Paginated)
+ *     tags: [Jewellery]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 20
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           example: 0
+ *     responses:
+ *       200:
+ *         description: List of jewellery items
+ *       500:
+ *         description: Server error
  */
 router.get("/", async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 50;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
     const offset = parseInt(req.query.offset) || 0;
 
-    const items = await getAllJewellery(limit, offset);
+    const { data, error } = await supabase
+      .from("jewellery_products")
+      .select("*")
+      .eq("is_active", true)
+      .range(offset, offset + limit - 1)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
 
     return res.json({
-      count: items.length,
-      items,
+      count: data.length,
+      items: data
     });
-  } catch (error) {
-    console.error("Error fetching jewellery:", error);
+
+  } catch (err) {
     return res.status(500).json({
-      error: "Internal server error",
-      detail: error.message,
+      error: "Failed to fetch jewellery",
+      detail: err.message
     });
   }
 });
 
+
 /**
- * GET /jewellery/search
- * Search jewellery by query
+ * ==========================================================
+ * 2️⃣ GET SINGLE JEWELLERY
+ * ==========================================================
  */
-router.get("/search", async (req, res) => {
-  try {
-    const { q } = req.query;
-
-    if (!q) {
-      return res.status(400).json({
-        error: "Validation error",
-        detail: "Query parameter 'q' is required",
-      });
-    }
-
-    const results = await searchJewellery(q);
-
-    return res.json({
-      count: results.length,
-      results,
-    });
-  } catch (error) {
-    console.error("Error searching jewellery:", error);
-    return res.status(500).json({
-      error: "Internal server error",
-      detail: error.message,
-    });
-  }
-});
 
 /**
- * GET /jewellery/:id
- * Get a single jewellery item by ID
+ * @swagger
+ * /jewellery/{id}:
+ *   get:
+ *     summary: Get jewellery by ID
+ *     tags: [Jewellery]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Jewellery found
+ *       404:
+ *         description: Jewellery not found
+ *       500:
+ *         description: Server error
  */
 router.get("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
+    const { data, error } = await supabase
+      .from("jewellery_products")
+      .select("*")
+      .eq("id", req.params.id)
+      .eq("is_active", true)
+      .single();
 
-    const item = await getJewelleryById(id);
-
-    if (!item) {
+    if (!data) {
       return res.status(404).json({
-        error: "Not found",
-        detail: "Jewellery item not found",
+        error: "Jewellery not found"
       });
     }
 
-    return res.json(item);
-  } catch (error) {
-    console.error("Error fetching jewellery:", error);
+    if (error) throw error;
+
+    return res.json(data);
+
+  } catch (err) {
     return res.status(500).json({
-      error: "Internal server error",
-      detail: error.message,
+      error: "Fetch failed",
+      detail: err.message
     });
   }
 });
 
+
 /**
- * POST /jewellery
- * Create a new jewellery item (admin only)
+ * ==========================================================
+ * 3️⃣ CREATE JEWELLERY (Admin Only)
+ * ==========================================================
+ */
+
+/**
+ * @swagger
+ * /jewellery:
+ *   post:
+ *     summary: Create jewellery (Admin only)
+ *     tags: [Jewellery]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - category
+ *               - image_url
+ *             properties:
+ *               title:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               image_url:
+ *                 type: string
+ *           example:
+ *             title: "Royal Gold Ring"
+ *             category: "ring"
+ *             description: "Premium handcrafted ring"
+ *             image_url: "https://example.com/ring.jpg"
+ *     responses:
+ *       201:
+ *         description: Jewellery created successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
  */
 router.post(
   "/",
   authenticateToken,
-  adminRequired,
+  authorizeRoles("admin"),
   async (req, res) => {
     try {
-      const { title, type, material, price, image_url, description } = req.body;
+      const { title, category, description, image_url } = req.body;
 
-      // Validate input
-      if (!title || !type || !material || !price || !image_url) {
+      if (!title || !category || !image_url) {
         return res.status(400).json({
-          error: "Validation error",
-          detail: "title, type, material, price, and image_url are required",
+          error: "title, category and image_url are required"
         });
       }
 
-      const item = await createJewellery({
-        title,
-        type,
-        material,
-        price: parseFloat(price),
-        image_url,
-        description,
-      });
+      const { data, error } = await supabase
+        .from("jewellery_products")
+        .insert([{
+          title,
+          category,
+          description,
+          image_url,
+          is_active: true
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
 
       return res.status(201).json({
-        message: "Jewellery item created successfully",
-        item,
+        message: "Jewellery created successfully",
+        item: data
       });
-    } catch (error) {
-      console.error("Error creating jewellery:", error);
+
+    } catch (err) {
       return res.status(500).json({
-        error: "Internal server error",
-        detail: error.message,
+        error: "Creation failed",
+        detail: err.message
       });
     }
   }
 );
 
+
 /**
- * PUT /jewellery/:id
- * Update a jewellery item (admin only)
+ * ==========================================================
+ * 4️⃣ UPDATE JEWELLERY (Admin Only)
+ * ==========================================================
+ */
+
+/**
+ * @swagger
+ * /jewellery/{id}:
+ *   put:
+ *     summary: Update jewellery (Admin only)
+ *     tags: [Jewellery]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           example:
+ *             title: "Updated Gold Ring"
+ *             description: "Updated description"
+ *     responses:
+ *       200:
+ *         description: Jewellery updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
  */
 router.put(
   "/:id",
   authenticateToken,
-  adminRequired,
+  authorizeRoles("admin"),
   async (req, res) => {
     try {
-      const { id } = req.params;
-      const updates = req.body;
+      const { data, error } = await supabase
+        .from("jewellery_products")
+        .update({
+          ...req.body,
+          updated_at: new Date()
+        })
+        .eq("id", req.params.id)
+        .select()
+        .single();
 
-      const item = await updateJewellery(id, updates);
+      if (error) throw error;
 
       return res.json({
-        message: "Jewellery item updated successfully",
-        item,
+        message: "Jewellery updated successfully",
+        item: data
       });
-    } catch (error) {
-      console.error("Error updating jewellery:", error);
+
+    } catch (err) {
       return res.status(500).json({
-        error: "Internal server error",
-        detail: error.message,
+        error: "Update failed",
+        detail: err.message
       });
     }
   }
 );
 
+
 /**
- * DELETE /jewellery/:id
- * Delete a jewellery item (admin only)
+ * ==========================================================
+ * 5️⃣ SOFT DELETE JEWELLERY (Admin Only)
+ * ==========================================================
+ */
+
+/**
+ * @swagger
+ * /jewellery/{id}:
+ *   delete:
+ *     summary: Soft delete jewellery (Admin only)
+ *     tags: [Jewellery]
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Jewellery deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
  */
 router.delete(
   "/:id",
   authenticateToken,
-  adminRequired,
+  authorizeRoles("admin"),
   async (req, res) => {
     try {
-      const { id } = req.params;
-
-      await deleteJewellery(id);
+      await supabase
+        .from("jewellery_products")
+        .update({ is_active: false })
+        .eq("id", req.params.id);
 
       return res.json({
-        message: "Jewellery item deleted successfully",
+        message: "Jewellery deleted successfully"
       });
-    } catch (error) {
-      console.error("Error deleting jewellery:", error);
+
+    } catch (err) {
       return res.status(500).json({
-        error: "Internal server error",
-        detail: error.message,
+        error: "Delete failed",
+        detail: err.message
       });
     }
   }

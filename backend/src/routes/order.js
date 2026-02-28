@@ -37,13 +37,15 @@ const router = express.Router();
  */
 router.post("/checkout", authenticateToken, async (req, res) => {
   try {
-    const user_id = req.user.user_id; // ✅ FIXED
-
-    console.log("Checkout user:", user_id);
+    const user_id = req.user.user_id;
+    const { coupon_code } = req.body;
 
     const { data, error } = await supabase.rpc(
       "checkout_user_cart",
-      { p_user_id: user_id }
+      {
+        p_user_id: user_id,
+        p_coupon_code: coupon_code || null
+      }
     );
 
     if (error) {

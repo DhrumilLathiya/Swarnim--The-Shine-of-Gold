@@ -1,35 +1,39 @@
 import dotenv from "dotenv";
 dotenv.config();
-console.log("SECRET_KEY:", process.env.SECRET_KEY);
 
 import express from "express";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
-import cartRoutes from "./routes/cart.js";
-import orderRoutes from "./routes/order.js";
-
 
 import { config } from "./config/index.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
-// Routes
+// =============================
+// Route Imports
+// =============================
 import authRoutes from "./routes/auth.js";
 import jewelleryRoutes from "./routes/jewellery.js";
 import userRoutes from "./routes/user.js";
 import aiRoutes from "./routes/ai.js";
 import adminRoutes from "./routes/admin.js";
+import cartRoutes from "./routes/cart.js";
+import orderRoutes from "./routes/order.js";
+import notificationRoutes from "./routes/notification.js";
+import wishlistRoutes from "./routes/wishlist.js";
+import reviewsRoutes from "./routes/reviews.js";
+import ratesRoutes from "./routes/rates.js";
+import productVariantRoutes from "./routes/productVariant.js";
 import productRoutes from "./routes/productRoutes.js";
-
 
 const app = express();
 
 // =============================
-// Middleware
+// Core Middleware
 // =============================
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
 
 // =============================
 // Swagger Configuration
@@ -40,24 +44,24 @@ const swaggerOptions = {
     info: {
       title: "Swarnim Jewellery AI API",
       version: "1.0.0",
-      description: "Backend API documentation for Swarnim AI platform",
+      description: "Backend API documentation for Swarnim AI platform"
     },
     servers: [
       {
-        url: `http://localhost:${config.port || 3000}`,
-      },
+        url: `http://localhost:${config.port || 3000}`
+      }
     ],
     components: {
       securitySchemes: {
         BearerAuth: {
           type: "http",
           scheme: "bearer",
-          bearerFormat: "JWT",
-        },
-      },
-    },
+          bearerFormat: "JWT"
+        }
+      }
+    }
   },
-  apis: ["./src/routes/*.js"],
+  apis: ["./src/routes/*.js"]
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -73,26 +77,37 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    message: "Server is healthy",
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   });
 });
 
 // =============================
-// API Routes (ORDER MATTERS)
+// API Routes (Structured & Ordered)
 // =============================
+
+// Authentication
 app.use("/auth", authRoutes);
+
+// Core Catalogue
 app.use("/jewellery", jewelleryRoutes);
+app.use("/product-variants", productVariantRoutes);   // ✅ FIXED NAME
+app.use("/rates", ratesRoutes);
+
+// User Operations
 app.use("/user", userRoutes);
-app.use("/ai", aiRoutes);
-app.use("/admin", adminRoutes);
+app.use("/wishlist", wishlistRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", orderRoutes);
+app.use("/reviews", reviewsRoutes);
 
+// Admin
+app.use("/admin", adminRoutes);
 
+// AI
+app.use("/ai", aiRoutes);
 
-// 👇 Mount product route BEFORE error handlers
-app.use("/", productRoutes);
+// Product (keep last to avoid route swallowing)
+app.use("/products", productRoutes);
 
 // =============================
 // Error Handling (MUST BE LAST)
@@ -107,8 +122,7 @@ const PORT = config.port || 3000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📚 API Docs: http://localhost:${PORT}/api-docs`);
-  console.log(`Environment: ${config.nodeEnv}`);
+  console.log(`📚 API Docs available at http://localhost:${PORT}/api-docs`);
 });
 
 export default app;

@@ -8,14 +8,14 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Cart
- *   description: User cart management
+ *   description: Production-level user cart management
  */
 
 /**
  * @swagger
  * /cart:
  *   post:
- *     summary: Add or update product in cart
+ *     summary: Add product to cart or increase quantity
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
@@ -31,16 +31,18 @@ const router = express.Router();
  *             properties:
  *               product_id:
  *                 type: string
+ *                 format: uuid
  *               quantity:
  *                 type: integer
+ *                 minimum: 1
  *     responses:
  *       200:
- *         description: Product added or updated
+ *         description: Cart updated successfully
  */
 router.post("/", authenticateToken, async (req, res) => {
   try {
+    const user_id = req.user.user_id;
     const { product_id, quantity } = req.body;
-    const user_id = req.user.user_id; // must match your JWT payload
 
     if (!product_id || !quantity || quantity <= 0) {
       return res.status(400).json({
@@ -48,39 +50,63 @@ router.post("/", authenticateToken, async (req, res) => {
       });
     }
 
-    // Get product details
+    // 1️⃣ Fetch product
     const { data: product, error: productError } = await supabase
       .from("jewellery_products")
-      .select("final_price, stock_quantity")
+      .select("id, final_price, stock_quantity")
       .eq("id", product_id)
       .single();
 
     if (productError || !product) {
-      return res.status(404).json({
-        error: "Product not found"
-      });
+      return res.status(404).json({ error: "Product not found" });
     }
 
-    if (quantity > product.stock_quantity) {
-      return res.status(400).json({
-        error: "Not enough stock available"
-      });
-    }
-
-    // Upsert cart item
-    const { error } = await supabase
+    // 2️⃣ Check existing cart item
+    const { data: existingItem } = await supabase
       .from("cart_items")
-      .upsert({
-        user_id,
-        product_id,
-        quantity,
-        price_snapshot: product.final_price
-      }, { onConflict: "user_id,product_id" });
+      .select("*")
+      .eq("user_id", user_id)
+      .eq("product_id", product_id)
+      .single();
 
-    if (error) throw error;
+    if (existingItem) {
+      const newQuantity = existingItem.quantity + quantity;
 
-    return res.json({
-      message: "Product added/updated in cart successfully"
+      if (newQuantity > product.stock_quantity) {
+        return res.status(400).json({
+          error: "Requested quantity exceeds stock"
+        });
+      }
+
+      const { error: updateError } = await supabase
+        .from("cart_items")
+        .update({ quantity: newQuantity })
+        .eq("user_id", user_id)
+        .eq("product_id", product_id);
+
+      if (updateError) throw updateError;
+
+    } else {
+      if (quantity > product.stock_quantity) {
+        return res.status(400).json({
+          error: "Requested quantity exceeds stock"
+        });
+      }
+
+      const { error: insertError } = await supabase
+        .from("cart_items")
+        .insert([{
+          user_id,
+          product_id,
+          quantity,
+          price_snapshot: product.final_price
+        }]);
+
+      if (insertError) throw insertError;
+    }
+
+    return res.status(200).json({
+      message: "Cart updated successfully"
     });
 
   } catch (error) {
@@ -95,13 +121,13 @@ router.post("/", authenticateToken, async (req, res) => {
  * @swagger
  * /cart:
  *   get:
- *     summary: Get current user cart
+ *     summary: Get current user cart with totals
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       200:
- *         description: Cart items
+ *         description: Cart items with total
  */
 router.get("/", authenticateToken, async (req, res) => {
   try {
@@ -116,15 +142,24 @@ router.get("/", authenticateToken, async (req, res) => {
         jewellery_products (
           id,
           product_name,
-          image_url,
-          final_price
+          final_price,
+          stock_quantity
         )
       `)
       .eq("user_id", user_id);
 
     if (error) throw error;
 
-    return res.json(data);
+    const total_amount = data.reduce(
+      (sum, item) => sum + item.quantity * item.price_snapshot,
+      0
+    );
+
+    return res.status(200).json({
+      items: data,
+      total_items: data.length,
+      total_amount
+    });
 
   } catch (error) {
     return res.status(500).json({
@@ -148,32 +183,28 @@ router.get("/", authenticateToken, async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
+ *           format: uuid
  *     responses:
  *       200:
  *         description: Item removed from cart
  */
 router.delete("/:product_id", authenticateToken, async (req, res) => {
   try {
-    const { product_id } = req.params;
     const user_id = req.user.user_id;
-
-    console.log("Deleting for user:", user_id);
-    console.log("Deleting product:", product_id);
+    const { product_id } = req.params;
 
     const { data, error } = await supabase
       .from("cart_items")
       .delete()
       .eq("user_id", user_id)
       .eq("product_id", product_id)
-      .select(); // ← VERY IMPORTANT
+      .select();
 
     if (error) throw error;
 
-    console.log("Deleted rows:", data);
-
-    return res.json({
+    return res.status(200).json({
       message: "Item removed from cart",
-      deleted: data
+      deleted_item: data
     });
 
   } catch (error) {
@@ -183,6 +214,5 @@ router.delete("/:product_id", authenticateToken, async (req, res) => {
     });
   }
 });
-
 
 export default router;
