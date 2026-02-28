@@ -14,7 +14,7 @@ export async function getDiamondRate(quality = "VVS1") {
       throw new Error(`Diamond rate not found for quality: ${normalizedQuality}`);
     }
 
-    return data.price_per_carat;   
+    return data.price_per_carat;
 
   } catch (err) {
     console.error("Diamond Rate Fetch Error:", err.message);

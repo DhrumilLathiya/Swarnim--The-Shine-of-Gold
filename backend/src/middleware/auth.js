@@ -15,6 +15,7 @@ export const authenticateToken = (req, res, next) => {
     }
 
     const payload = verifyToken(token);
+    console.log("🔑 Token Payload:", payload);
 
     req.user = payload;
     next();

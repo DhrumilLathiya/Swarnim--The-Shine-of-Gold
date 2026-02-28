@@ -64,6 +64,8 @@ router.get("/", async (req, res) => {
         category,
         description,
         image_url,
+        availability,
+        collection_tag,
         created_at
         `,
         { count: "exact" }
@@ -102,15 +104,12 @@ router.get("/", async (req, res) => {
 });
 
 
-/* ==========================================================
-   GET SINGLE PRODUCT (WITH VARIANTS)
-========================================================== */
 
 /**
  * @swagger
  * /products/{id}:
  *   get:
- *     summary: Get single product with active variants
+ *     summary: Get a single product by ID
  *     tags: [Products]
  *     parameters:
  *       - in: path
@@ -118,70 +117,30 @@ router.get("/", async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
- *           format: uuid
  *     responses:
  *       200:
- *         description: Product details with variants
- *       400:
- *         description: Invalid ID
+ *         description: Product details
  *       404:
  *         description: Product not found
  */
-router.get("/:id", async (req, res) => {
+router.get("/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!isUuid(id)) {
-      return res.status(400).json({
-        error: "Invalid product ID format"
-      });
-    }
-
-    const { data: product, error } = await supabase
+    const { data, error } = await supabase
       .from("jewellery_products")
       .select("*")
       .eq("id", id)
-      .eq("is_active", true)
-      .maybeSingle();
+      .single();
 
     if (error) {
-      return res.status(500).json({
-        error: "Database error",
-        detail: error.message
-      });
+      return res.status(404).json({ error: "Product not found" });
     }
 
-    if (!product) {
-      return res.status(404).json({
-        error: "Product not found"
-      });
-    }
-
-    const { data: variants } = await supabase
-      .from("product_variants")
-      .select(`
-        id,
-        sku,
-        metal_type,
-        purity,
-        size,
-        weight,
-        additional_price,
-        stock_quantity
-      `)
-      .eq("product_id", id)
-      .eq("is_active", true);
-
-    return res.status(200).json({
-      ...product,
-      variants
-    });
-
+    return res.json(data);
   } catch (error) {
-    return res.status(500).json({
-      error: "Internal server error",
-      detail: error.message
-    });
+    console.error("Get Product By ID Error:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 

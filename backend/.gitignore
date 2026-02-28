@@ -13,7 +13,7 @@ node_modules/
 # =========================
 # Logs
 # =========================
-logs/
+logs
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -23,13 +23,13 @@ pnpm-debug.log*
 # =========================
 # Runtime Data
 # =========================
-pids/
+pids
 *.pid
 *.seed
 *.pid.lock
 
 # =========================
-# Uploads (User files - if temporary)
+# Uploads (User files)
 # =========================
 uploads/
 
@@ -58,11 +58,11 @@ Thumbs.db
 *.swp
 
 # =========================
-# TypeScript
+# Optional: TypeScript
 # =========================
 *.tsbuildinfo
 
 # =========================
-# Docker
+# Optional: Docker
 # =========================
 docker-compose.override.yml

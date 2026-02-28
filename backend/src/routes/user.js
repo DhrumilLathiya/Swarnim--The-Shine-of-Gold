@@ -1,5 +1,4 @@
 import express from "express";
-import validator from "validator";
 import { getUserGenerations } from "../model/Generation.js";
 import { getUserById, updateUser } from "../model/User.js";
 import { authenticateToken } from "../middleware/auth.js";

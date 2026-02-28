@@ -17,23 +17,21 @@ export const createGeneration = async ({
   ai_result = null,
   status = "pending",
 }) => {
-  if (!user_id || !uploaded_image_url) {
-    throw new Error("user_id and uploaded_image_url are required");
-  }
-
-  if (!VALID_STATUS.includes(status)) {
-    throw new Error("Invalid status value");
-  }
+  const generationId = uuidv4();
 
   const { data, error } = await supabase
     .from("generation_history")
-    .insert([{
-      user_id,
-      uploaded_image_url,
-      result_image_url,
-      ai_result,
-      status
-    }])
+    .insert([
+      {
+        id: generationId,
+        user_id,
+        uploaded_image_url,
+        result_image_url,
+        ai_result,
+        status,
+        created_at: new Date(),
+      },
+    ])
     .select()
     .single();
 
@@ -153,4 +151,13 @@ export const deleteGeneration = async (generationId) => {
   }
 
   return true;
+};
+
+export default {
+  createGeneration,
+  getUserGenerations,
+  getGenerationById,
+  updateGeneration,
+  getAllGenerations,
+  deleteGeneration,
 };
