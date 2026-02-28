@@ -1,13 +1,7 @@
 import express from "express";
-import {
-  getAllJewellery,
-  getJewelleryById,
-  createJewellery,
-  updateJewellery,
-  deleteJewellery,
-  searchJewellery,
-} from "../models/Jewellery.js";
-import { authenticateToken, adminRequired } from "../middleware/auth.js";
+import { supabase } from "../config/database.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
 

@@ -8,14 +8,10 @@ export const authorizeRoles = (...allowedRoles) => {
       });
     }
 
-<<<<<<< HEAD
     console.log("🛡️ Role Check:", { userRole: req.user.role, allowedRoles });
 
     if (!allowedRoles.includes(req.user.role)) {
       console.log("❌ Access Denied: Role mismatch");
-=======
-    if (!req.user.role) {
->>>>>>> raj
       return res.status(403).json({
         error: "Forbidden",
         detail: "User role not defined"

@@ -2,7 +2,7 @@ import express from "express";
 import crypto from "crypto";
 import { supabase } from "../config/database.js";
 import { hashPassword, verifyPassword, createAccessToken } from "../utils/auth.js";
-import { getUserByEmail, createUser, deleteUser } from "../models/User.js";
+import { getUserByEmail, createUser, deleteUser } from "../model/User.js";
 import { sendVerificationEmail } from "../services/mailService.js";
 
 const router = express.Router();

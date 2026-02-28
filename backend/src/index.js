@@ -30,9 +30,7 @@ import reviewsRoutes from "./routes/reviews.js";
 import ratesRoutes from "./routes/rates.js";
 import productVariantRoutes from "./routes/productVariant.js";
 import productRoutes from "./routes/productRoutes.js";
-import cartRoutes from "./routes/cart.js";
-import orderRoutes from "./routes/order.js";
-import uploadRoutes from "./routes/upload.js"; // Import upload route
+import uploadRoutes from "./routes/upload.js";
 
 const app = express();
 
@@ -44,13 +42,13 @@ console.log("JWT SECRET =", process.env.SECRET_KEY ? "Loaded ✅" : "Missing ❌
 // =============================
 // Middleware
 // =============================
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: ["http://localhost:8080", "http://localhost:5173"], // Allow frontend ports
+  origin: ["http://localhost:8080", "http://localhost:5173"],
   credentials: true
 }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // =============================
 // Swagger Config
@@ -107,18 +105,25 @@ app.use("/auth", authRoutes);
 
 // Core Catalogue
 app.use("/jewellery", jewelleryRoutes);
-app.use("/product-variants", productVariantRoutes);   // ✅ FIXED NAME
+app.use("/product-variants", productVariantRoutes);
 app.use("/rates", ratesRoutes);
+app.use("/", productRoutes);
 
 // User Operations
 app.use("/user", userRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", orderRoutes);
-app.use("/orders", orderRoutes);
-app.use("/", productRoutes);
-app.use("/upload", uploadRoutes); // Register upload route
-app.use("/uploads", express.static("uploads")); // Serve static files
+
+// Admin / AI (if needed)
+app.use("/admin", adminRoutes);
+app.use("/ai", aiRoutes);
+app.use("/notifications", notificationRoutes);
+app.use("/reviews", reviewsRoutes);
+
+// Uploads
+app.use("/upload", uploadRoutes);
+app.use("/uploads", express.static("uploads"));
 
 // =============================
 // Error Handling (LAST)
