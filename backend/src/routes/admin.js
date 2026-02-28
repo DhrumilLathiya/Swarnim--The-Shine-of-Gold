@@ -1,8 +1,7 @@
 import express from "express";
+import { supabase } from "../config/database.js";
 import { authenticateToken } from "../middleware/auth.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
-import { supabase } from "../config/database.js";
-
 import { fetchGoldRate } from "../services/goldRateService.js";
 import { getDiamondRate } from "../services/diamondRateService.js";
 import { calculateFinalPrice } from "../services/pricingService.js";
@@ -13,14 +12,79 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Admin
- *   description: Admin-only endpoints
+ *   description: Admin-only jewellery management endpoints
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     JewelleryCreateRequest:
+ *       type: object
+ *       required:
+ *         - product_name
+ *         - category
+ *         - sku
+ *         - metal_type
+ *         - purity
+ *         - metal_weight
+ *         - making_charges
+ *         - stock_quantity
+ *         - availability
+ *       properties:
+ *         product_name:
+ *           type: string
+ *           example: 22K Gold Ring
+ *         category:
+ *           type: string
+ *           example: Rings
+ *         collection_tag:
+ *           type: string
+ *           example: Wedding Collection
+ *         sku:
+ *           type: string
+ *           example: GR-22K-001
+ *         metal_type:
+ *           type: string
+ *           enum: [gold, silver, platinum]
+ *         purity:
+ *           type: string
+ *           example: 22K
+ *         metal_weight:
+ *           type: number
+ *           example: 10.5
+ *         diamond_weight:
+ *           type: number
+ *           example: 0.5
+ *         diamond_quality:
+ *           type: string
+ *           example: VVS1
+ *         making_charges:
+ *           type: number
+ *           example: 1500
+ *         discount:
+ *           type: number
+ *           example: 5
+ *         stock_quantity:
+ *           type: integer
+ *           example: 10
+ *         availability:
+ *           type: string
+ *           enum: [in_stock, out_of_stock, preorder]
+ *         description:
+ *           type: string
+ *         image_url:
+ *           type: string
+ *         metal_price:
+ *           type: number
+ *           example: 5800
  */
 
 /**
  * @swagger
  * /admin/jewellery:
  *   post:
- *     summary: Create jewellery product with live pricing (Admin only)
+ *     summary: Create jewellery product with live pricing
  *     tags: [Admin]
  *     security:
  *       - BearerAuth: []
@@ -29,46 +93,7 @@ const router = express.Router();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - product_name
- *               - category
- *               - sku
- *               - metal_type
- *               - purity
- *               - metal_weight
- *               - making_charges
- *               - stock_quantity
- *               - availability
- *             properties:
- *               product_name:
- *                 type: string
- *               category:
- *                 type: string
- *               sku:
- *                 type: string
- *               metal_type:
- *                 type: string
- *               purity:
- *                 type: string
- *               metal_weight:
- *                 type: number
- *               diamond_weight:
- *                 type: number
- *               diamond_quality:
- *                 type: string
- *               making_charges:
- *                 type: number
- *               discount:
- *                 type: number
- *               stock_quantity:
- *                 type: integer
- *               availability:
- *                 type: string
- *               description:
- *                 type: string
- *               image_url:
- *                 type: string
+ *             $ref: '#/components/schemas/JewelleryCreateRequest'
  *     responses:
  *       201:
  *         description: Product created successfully
@@ -77,18 +102,20 @@ const router = express.Router();
  *       401:
  *         description: Unauthorized
  *       403:
- *         description: Admin only
+ *         description: Admin access required
+ *       500:
+ *         description: Server error
  */
 router.post(
   "/jewellery",
   authenticateToken,
-  authorizeRoles("ADMIN"),
+  authorizeRoles("admin"),
   async (req, res) => {
     try {
       const {
         product_name,
         category,
-        collection_tag, // Added
+        collection_tag,
         sku,
         metal_type,
         purity,
@@ -101,13 +128,11 @@ router.post(
         availability,
         description,
         image_url,
-        final_price: manual_final_price,
         metal_price: manual_metal_price
       } = req.body;
 
-      // ---------------------------
-      // VALIDATION
-      // ---------------------------
+      /* ================= VALIDATION ================= */
+
       if (
         !product_name ||
         !category ||
@@ -120,14 +145,29 @@ router.post(
         !availability
       ) {
         return res.status(400).json({
-          error: "Validation error",
-          detail: "Missing required fields"
+          success: false,
+          message: "Missing required fields"
         });
       }
 
-      // ---------------------------
-      // TYPE CASTING
-      // ---------------------------
+      const allowedMetals = ["gold", "silver", "platinum"];
+      if (!allowedMetals.includes(metal_type.toLowerCase())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid metal_type"
+        });
+      }
+
+      const allowedAvailability = ["in_stock", "out_of_stock", "preorder"];
+      if (!allowedAvailability.includes(availability)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid availability value"
+        });
+      }
+
+      /* ================= NUMERIC CASTING ================= */
+
       const numericMetalWeight = Number(metal_weight);
       const numericDiamondWeight = Number(diamond_weight);
       const numericMakingCharges = Number(making_charges);
@@ -135,129 +175,129 @@ router.post(
       const numericStockQuantity = Number(stock_quantity);
 
       if (
-        isNaN(numericMetalWeight) ||
-        isNaN(numericDiamondWeight) ||
-        isNaN(numericMakingCharges) ||
-        isNaN(numericDiscount) ||
-        isNaN(numericStockQuantity)
+        [numericMetalWeight, numericDiamondWeight,
+         numericMakingCharges, numericDiscount,
+         numericStockQuantity].some(isNaN)
       ) {
         return res.status(400).json({
-          error: "Validation error",
-          detail: "Numeric fields contain invalid values"
+          success: false,
+          message: "Invalid numeric values"
         });
       }
 
-      console.log("🟢 Creating product:", product_name);
+      /* ================= SKU CHECK ================= */
 
-      // Variables to store rates
-      let metalPricePerGram = 0;
-      let diamondPricePerCarat = 0;
-      let finalPriceToSave = 0;
-      let breakdown = {};
+      const { data: existingSku } = await supabase
+        .from("jewellery_products")
+        .select("id")
+        .eq("sku", sku)
+        .maybeSingle();
 
-      // ---------------------------
-      // DETERMINE RATES & PRICE
-      // ---------------------------
-
-      // 1. Get Metal Price (Prioritize manual input, else fetch)
-      if (manual_metal_price) {
-        metalPricePerGram = Number(manual_metal_price);
-        console.log("Using Manual Metal Price:", metalPricePerGram);
-      } else {
-        try {
-          metalPricePerGram = await fetchGoldRate(purity);
-          console.log("Fetched Gold Rate:", metalPricePerGram);
-        } catch (err) {
-          console.error("Failed to fetch gold rate, defaulting to 0:", err.message);
-          metalPricePerGram = 0;
-        }
+      if (existingSku) {
+        return res.status(400).json({
+          success: false,
+          message: "SKU already exists"
+        });
       }
 
-      // 2. Get Diamond Price
+      /* ================= CATEGORY CHECK ================= */
+
+      const { data: categoryExists } = await supabase
+        .from("categories")
+        .select("id")
+        .eq("name", category)
+        .maybeSingle();
+
+      if (!categoryExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid category"
+        });
+      }
+
+      /* ================= FETCH LIVE PRICES ================= */
+
+      let metalPricePerGram = 0;
+      let diamondPricePerCarat = 0;
+
+      try {
+        metalPricePerGram = manual_metal_price
+          ? Number(manual_metal_price)
+          : await fetchGoldRate(purity);
+      } catch {
+        metalPricePerGram = 0;
+      }
+
       if (numericDiamondWeight > 0) {
         try {
           diamondPricePerCarat = await getDiamondRate(diamond_quality);
-          console.log("Fetched Diamond Rate:", diamondPricePerCarat);
-        } catch (err) {
-          console.error("Failed to fetch diamond rate:", err.message);
-          // diamondPricePerCarat remains 0
+        } catch {
+          diamondPricePerCarat = 0;
         }
       }
 
-      // 3. Calculate or Use Manual Final Price
-      if (manual_final_price) {
-        console.log("⚠️ Using manual final_price from frontend:", manual_final_price);
-        finalPriceToSave = Number(manual_final_price);
-        breakdown = {
-          finalPrice: finalPriceToSave,
-          metalPricePerGram,
-          message: "Manual Price Override"
-        };
-      } else {
-        // Calculate
-        const pricing = calculateFinalPrice({
-          metalPricePerGram,
-          metalWeight: numericMetalWeight,
-          diamondPricePerCarat,
-          diamondWeight: numericDiamondWeight,
-          makingCharges: numericMakingCharges,
-          discount: numericDiscount
+      /* ================= PRICE CALCULATION ================= */
+
+      const pricing = calculateFinalPrice({
+        metalPricePerGram,
+        metalWeight: numericMetalWeight,
+        diamondPricePerCarat,
+        diamondWeight: numericDiamondWeight,
+        makingCharges: numericMakingCharges,
+        discount: numericDiscount
+      });
+
+      if (!pricing?.finalPrice || isNaN(pricing.finalPrice)) {
+        return res.status(400).json({
+          success: false,
+          message: "Final price calculation failed"
         });
-
-        finalPriceToSave = pricing.finalPrice;
-        breakdown = pricing;
       }
 
-      console.log("Pricing Breakdown:", breakdown);
+      /* ================= INSERT PRODUCT ================= */
 
-      if (finalPriceToSave == null || isNaN(finalPriceToSave)) {
-        throw new Error("Final price calculation failed");
-      }
-
-      // ---------------------------
-      // INSERT INTO DATABASE
-      // ---------------------------
       const { data, error } = await supabase
         .from("jewellery_products")
-        .insert({
-          product_name,
-          category,
-          sku,
-          metal_type,
-          purity,
-          metal_weight: numericMetalWeight,
-          diamond_weight: numericDiamondWeight,
-          making_charges: numericMakingCharges,
-          discount: numericDiscount,
-          metal_price_per_gram: metalPricePerGram, // Now guaranteed to be a number (0 or value)
-          diamond_price_per_carat: diamondPricePerCarat,
-          final_price: finalPriceToSave,
-          stock_quantity: numericStockQuantity,
-          availability,
-          description,
-          image_url,
-          collection_tag, // Added
-          created_by: req.user.id
-        })
+        .insert([
+          {
+            product_name: product_name.trim(),
+            category,
+            collection_tag,
+            sku: sku.trim(),
+            metal_type: metal_type.toLowerCase(),
+            purity,
+            metal_weight: numericMetalWeight,
+            diamond_weight: numericDiamondWeight,
+            making_charges: numericMakingCharges,
+            discount: numericDiscount,
+            metal_price_per_gram: metalPricePerGram,
+            diamond_price_per_carat: diamondPricePerCarat,
+            final_price: pricing.finalPrice,
+            stock_quantity: numericStockQuantity,
+            availability,
+            description,
+            image_url,
+            created_by: req.user.user_id
+          }
+        ])
         .select()
         .single();
 
-      if (error) {
-        console.error("DB Insert Error:", error.message);
-        throw error;
-      }
+      if (error) throw error;
 
       return res.status(201).json({
+        success: true,
         message: "Product created successfully",
-        pricing_breakdown: breakdown,
+        pricing_breakdown: pricing,
         product: data
       });
 
-    } catch (error) {
-      console.error("Create Product Error:", error.message);
+    } catch (err) {
+      console.error("Admin Product Create Error:", err.message);
       return res.status(500).json({
-        error: "Internal server error",
-        detail: error.message
+        success: false,
+        message: "Internal server error",
+        detail: err.message
       });
     }
   }

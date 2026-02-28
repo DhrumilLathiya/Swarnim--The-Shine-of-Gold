@@ -8,14 +8,18 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Cart
- *   description: Production-level user cart management
+ *   description: Variant-based cart system
  */
+
+/* ==========================================================
+   1️⃣ ADD / UPDATE CART ITEM
+========================================================== */
 
 /**
  * @swagger
  * /cart:
  *   post:
- *     summary: Add product to cart or increase quantity
+ *     summary: Add variant to cart or increase quantity
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
@@ -23,18 +27,10 @@ const router = express.Router();
  *       required: true
  *       content:
  *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - product_id
- *               - quantity
- *             properties:
- *               product_id:
- *                 type: string
- *                 format: uuid
- *               quantity:
- *                 type: integer
- *                 minimum: 1
+ *           example:
+ *             product_id: "PRODUCT_UUID"
+ *             variant_id: "VARIANT_UUID"
+ *             quantity: 1
  *     responses:
  *       200:
  *         description: Product added/updated
@@ -43,33 +39,40 @@ router.post("/", authenticateToken, async (req, res) => {
   res.json({ message: "Cart POST working" });
 });
 
+
+/* ==========================================================
+   2️⃣ GET CART
+========================================================== */
+
 /**
  * @swagger
  * /cart:
  *   get:
- *     summary: Get current user cart with totals
+ *     summary: Get current user's cart
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Cart items with total
  */
 router.get("/", authenticateToken, async (req, res) => {
   res.json({ message: "Cart GET working" });
 });
 
+
+/* ==========================================================
+   3️⃣ REMOVE ITEM FROM CART
+========================================================== */
+
 /**
  * @swagger
- * /cart/{product_id}:
+ * /cart/{variant_id}:
  *   delete:
- *     summary: Remove item from cart
+ *     summary: Remove variant from cart
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: product_id
+ *         name: variant_id
  *         required: true
  *         schema:
  *           type: string

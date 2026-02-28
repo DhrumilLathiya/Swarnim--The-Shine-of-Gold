@@ -1,5 +1,6 @@
 import express from "express";
 import { supabase } from "../config/database.js";
+import { validate as isUuid } from "uuid";
 
 const router = express.Router();
 
@@ -7,45 +8,49 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Products
- *   description: Public product endpoints
+ *   description: Public product catalogue endpoints
  */
+
+
+/* ==========================================================
+   GET PRODUCTS (Paginated + Category Filter)
+========================================================== */
 
 /**
  * @swagger
  * /products:
  *   get:
- *     summary: Get jewellery products (Paginated)
+ *     summary: Get active jewellery products (Paginated)
  *     tags: [Products]
  *     parameters:
  *       - in: query
  *         name: page
  *         schema:
  *           type: integer
- *         description: Page number
+ *           example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Number of items per page
+ *           example: 10
  *       - in: query
  *         name: category
  *         schema:
  *           type: string
- *         description: Filter by category
+ *           example: ring
  *     responses:
  *       200:
  *         description: Paginated product list
  */
-router.get("/products", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 10;
     const category = req.query.category;
 
-    // Prevent invalid values
     if (page < 1) page = 1;
     if (limit < 1) limit = 10;
-    if (limit > 50) limit = 50; // max limit protection
+    if (limit > 50) limit = 50;
 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -55,9 +60,9 @@ router.get("/products", async (req, res) => {
       .select(
         `
         id,
-        product_name,
+        title,
         category,
-        final_price,
+        description,
         image_url,
         availability,
         collection_tag,
@@ -65,18 +70,24 @@ router.get("/products", async (req, res) => {
         `,
         { count: "exact" }
       )
+      .eq("is_active", true)
       .order("created_at", { ascending: false })
       .range(from, to);
 
     if (category) {
-      query = query.ilike("category", category);
+      query = query.ilike("category", `%${category}%`);
     }
 
     const { data, error, count } = await query;
 
-    if (error) throw error;
+    if (error) {
+      return res.status(500).json({
+        error: "Database error",
+        detail: error.message
+      });
+    }
 
-    return res.json({
+    return res.status(200).json({
       page,
       limit,
       total: count,
@@ -85,7 +96,6 @@ router.get("/products", async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Get Products Error:", error.message);
     return res.status(500).json({
       error: "Internal server error",
       detail: error.message

@@ -18,15 +18,18 @@ export const authorizeRoles = (...allowedRoles) => {
       });
     }
 
-    const userRole = String(req.user.role).toLowerCase().trim();
-    const normalizedAllowed = allowedRoles.map(role =>
-      String(role).toLowerCase().trim()
-    );
+    const userRole = req.user.role.toLowerCase();
+    const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
 
-    if (!normalizedAllowed.includes(userRole)) {
+    console.log("🛡️ Role Check:", {
+      userRole,
+      allowedRoles: normalizedAllowedRoles
+    });
+
+    if (!normalizedAllowedRoles.includes(userRole)) {
       return res.status(403).json({
         error: "Forbidden",
-        detail: `Required role: ${normalizedAllowed.join(", ")}`,
+        detail: "Insufficient permissions"
       });
     }
 

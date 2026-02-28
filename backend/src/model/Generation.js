@@ -1,9 +1,15 @@
-import { v4 as uuidv4 } from "uuid";
-import supabase from "../config/database.js";
+import { supabase } from "../config/database.js";
 
-/**
- * Create a new generation record
- */
+/* ==========================================================
+   VALID STATUS
+========================================================== */
+
+const VALID_STATUS = ["pending", "processing", "completed", "failed"];
+
+/* ==========================================================
+   CREATE GENERATION
+========================================================== */
+
 export const createGeneration = async ({
   user_id,
   uploaded_image_url,
@@ -30,88 +36,110 @@ export const createGeneration = async ({
     .single();
 
   if (error) {
-    throw new Error(`Failed to create generation: ${error.message}`);
+    throw new Error(`Create failed: ${error.message}`);
   }
 
   return data;
 };
 
-/**
- * Get all generations for a user
- */
-export const getUserGenerations = async (userId, limit = 50, offset = 0) => {
-  const { data, error } = await supabase
+/* ==========================================================
+   GET USER GENERATIONS (Paginated)
+========================================================== */
+
+export const getUserGenerations = async (
+  userId,
+  limit = 20,
+  offset = 0
+) => {
+  const { data, error, count } = await supabase
     .from("generation_history")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("user_id", userId)
     .range(offset, offset + limit - 1)
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(`Failed to fetch generations: ${error.message}`);
+    throw new Error(`Fetch failed: ${error.message}`);
   }
 
-  return data;
+  return {
+    total: count,
+    data
+  };
 };
 
-/**
- * Get a single generation record by ID
- */
+/* ==========================================================
+   GET SINGLE GENERATION
+========================================================== */
+
 export const getGenerationById = async (generationId) => {
   const { data, error } = await supabase
     .from("generation_history")
     .select("*")
     .eq("id", generationId)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== "PGRST116") {
-    throw new Error(`Failed to fetch generation: ${error.message}`);
+  if (error) {
+    throw new Error(`Fetch failed: ${error.message}`);
   }
 
   return data || null;
 };
 
-/**
- * Update generation with results
- */
+/* ==========================================================
+   UPDATE GENERATION
+========================================================== */
+
 export const updateGeneration = async (generationId, updates) => {
+  if (updates.status && !VALID_STATUS.includes(updates.status)) {
+    throw new Error("Invalid status value");
+  }
+
   const { data, error } = await supabase
     .from("generation_history")
     .update({
       ...updates,
-      updated_at: new Date(),
+      updated_at: new Date()
     })
     .eq("id", generationId)
     .select()
     .single();
 
   if (error) {
-    throw new Error(`Failed to update generation: ${error.message}`);
+    throw new Error(`Update failed: ${error.message}`);
   }
 
   return data;
 };
 
-/**
- * Get all generations (admin only)
- */
-export const getAllGenerations = async (limit = 50, offset = 0) => {
-  const { data, error } = await supabase
+/* ==========================================================
+   GET ALL GENERATIONS (Admin)
+========================================================== */
+
+export const getAllGenerations = async (
+  limit = 50,
+  offset = 0
+) => {
+  const { data, error, count } = await supabase
     .from("generation_history")
-    .select("*")
+    .select("*", { count: "exact" })
     .range(offset, offset + limit - 1)
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(`Failed to fetch generations: ${error.message}`);
+    throw new Error(`Fetch failed: ${error.message}`);
   }
 
-  return data;
+  return {
+    total: count,
+    data
+  };
 };
 
-/**
- * Delete a generation record (admin only)
- */
+/* ==========================================================
+   DELETE GENERATION (Admin)
+========================================================== */
+
 export const deleteGeneration = async (generationId) => {
   const { error } = await supabase
     .from("generation_history")
@@ -119,7 +147,7 @@ export const deleteGeneration = async (generationId) => {
     .eq("id", generationId);
 
   if (error) {
-    throw new Error(`Failed to delete generation: ${error.message}`);
+    throw new Error(`Delete failed: ${error.message}`);
   }
 
   return true;

@@ -1,4 +1,5 @@
 import express from "express";
+import { supabase } from "../config/database.js";
 import { authenticateToken } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -18,6 +19,16 @@ const router = express.Router();
  *     tags: [Orders]
  *     security:
  *       - BearerAuth: []
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               coupon_code:
+ *                 type: string
+ *                 example: SAVE10
  *     responses:
  *       200:
  *         description: Order created
