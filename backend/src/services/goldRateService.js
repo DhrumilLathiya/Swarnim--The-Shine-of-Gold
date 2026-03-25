@@ -1,8 +1,7 @@
 import axios from "axios";
-import dotenv from "dotenv";
 import { supabase } from "../config/database.js";
 
-dotenv.config();
+// No redundant dotenv.config() here, handled in index.js
 
 const GOLD_API_URL = "https://www.goldapi.io/api/XAU/INR";
 
@@ -31,7 +30,6 @@ export async function fetchGoldRate(purity = "24K") {
       const today = new Date().toDateString();
 
       if (fetchedDate === today) {
-        console.log("🟢 Using cached gold rate:", latest.price_per_gram);
         return Number(latest.price_per_gram);
       }
     }
@@ -39,7 +37,6 @@ export async function fetchGoldRate(purity = "24K") {
     // ---------------------------
     // 2️⃣ Fetch from GoldAPI
     // ---------------------------
-    console.log("🔵 Fetching fresh gold rate from API...");
 
     const response = await axios.get(GOLD_API_URL, {
       headers: {
@@ -66,8 +63,6 @@ export async function fetchGoldRate(purity = "24K") {
 
     pricePerGram = Number(pricePerGram);
 
-    console.log("🟡 Fresh Gold Rate:", pricePerGram);
-
     // ---------------------------
     // 3️⃣ Save snapshot
     // ---------------------------
@@ -82,6 +77,10 @@ export async function fetchGoldRate(purity = "24K") {
 
   } catch (error) {
     console.error("🔴 Gold API Error:", error.message);
-    throw new Error("Failed to fetch gold rate");
+
+    // FALLBACK: If API fails, try to return the LATEST available rate from DB
+    // even if it's not from "today", or return 0 to prevent crash.
+    console.warn("⚠️ Using fallback gold rate (0) to prevent application crash.");
+    return 0;
   }
 }

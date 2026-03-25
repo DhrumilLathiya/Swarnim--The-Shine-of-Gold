@@ -1,15 +1,19 @@
-import { v4 as uuidv4 } from "uuid";
-import supabase from "../config/database.js";
-
 /**
- * Get a user by ID
+ * USER DATA MODEL
+ * 
+ * PURPOSE: Manages customer and administrator profiles within the application.
+ * USAGE: Critical for authentication (src/routes/auth.js) and user profile management (src/routes/user.js).
  */
+import { v4 as uuidv4 } from "uuid"; // Utility for creating unique User IDs
+import supabase from "../config/database.js"; // Connection for user-related database queries
+
+// GET BY ID: Retrieves a specific user's public and protected profile data
 export const getUserById = async (userId) => {
   const { data, error } = await supabase
     .from("users")
-    .select("*")
-    .eq("id", userId)
-    .single();
+    .select("*") // Selecting all fields including roles
+    .eq("id", userId) // Filter by unique identifier
+    .single(); // We expect exactly one record
 
   if (error) {
     throw new Error(`Failed to fetch user: ${error.message}`);
@@ -36,11 +40,9 @@ export const getUserByEmail = async (email) => {
   return data || null;
 };
 
-/**
- * Create a new user
- */
+// REGISTRATION: Creates a new user profile with a default 'USER' role
 export const createUser = async (name, email, passwordHash) => {
-  const userId = uuidv4();
+  const userId = uuidv4(); // Assign unique UUID
 
   const { data, error } = await supabase
     .from("users")
@@ -49,8 +51,8 @@ export const createUser = async (name, email, passwordHash) => {
         id: userId,
         name,
         email,
-        password: passwordHash,
-        role: "USER",
+        password: passwordHash, // Store the encrypted password hash
+        role: "USER", // Default role assignment
       },
     ])
     .select()

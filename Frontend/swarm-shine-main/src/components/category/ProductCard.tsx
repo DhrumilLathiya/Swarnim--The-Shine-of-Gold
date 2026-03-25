@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
+import { useWishlist } from "@/context/WishlistContext";
+import { useCart } from "@/context/CartContext";
+import { cn } from "@/lib/utils";
 
 // ✅ Local Product Type (Since data/products removed)
 interface Product {
@@ -29,6 +32,26 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index }: ProductCardProps) => {
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
+  const active = isInWishlist(product.id);
+
+  const toggleWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (active) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product.id);
+    }
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product.id);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -66,8 +89,28 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
           </div>
 
           {/* Wishlist Button */}
-          <button className="absolute top-3 right-3 w-11 h-11 bg-background/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <Heart className="h-5 w-5" />
+          <button
+            onClick={toggleWishlist}
+            className={cn(
+              "absolute top-3 right-3 w-11 h-11 bg-background/90 rounded-full flex items-center justify-center transition-all shadow-sm",
+              "opacity-0 group-hover:opacity-100",
+              active ? "opacity-100 bg-background text-red-500" : "hover:text-red-500"
+            )}
+          >
+            <Heart className={cn("h-5 w-5", active && "fill-current")} />
+          </button>
+
+          {/* Quick Add to Bag Button */}
+          <button
+            onClick={handleAddToCart}
+            className={cn(
+              "absolute bottom-0 left-0 right-0 py-3 bg-accent/90 text-accent-foreground font-semibold text-sm",
+              "transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-2",
+              "hover:bg-accent"
+            )}
+          >
+            <ShoppingBag className="h-4 w-4" />
+            Add to Bag
           </button>
         </div>
 

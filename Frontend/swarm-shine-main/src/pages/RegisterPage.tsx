@@ -8,8 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
+import { useWishlist } from "@/context/WishlistContext";
+import { useCart } from "@/context/CartContext";
 
 const RegisterPage = () => {
+    const { refreshWishlist } = useWishlist();
+    const { refreshCart } = useCart();
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -23,7 +27,7 @@ const RegisterPage = () => {
         setIsLoading(true);
 
         try {
-            await axios.post(
+            const res = await axios.post(
                 "http://localhost:3000/auth/register",
                 {
                     name,
@@ -32,16 +36,29 @@ const RegisterPage = () => {
                 }
             );
 
+            // Handle Direct Login (Bypass)
+            if (res.data.access_token) {
+                localStorage.setItem("token", res.data.access_token);
+                localStorage.setItem("userName", res.data.user?.name);
+                localStorage.setItem("isAdminLoggedIn", res.data.user?.role === "ADMIN" ? "true" : "false");
+                await Promise.all([refreshWishlist(), refreshCart()]);
+
+                toast({
+                    title: "Registration Successful",
+                    description: "Welcome to Swarnim! You have been automatically logged in.",
+                });
+                
+                navigate("/");
+                return;
+            }
+
             toast({
                 title: "Registration Successful",
-                description: "Please check your email to verify your account.",
+                description: "A 6-digit OTP has been sent to your email.",
             });
 
-            // Redirect to login page (AccountPage) or stay here?
-            // User said: "In That Email First User Need to Click On Link and Verify Its Email ... Then User Need TO Reenter All Details"
-            // So redirecting to login seems appropriate.
-            navigate("/account");
-
+            // Redirect to OTP verification page
+            navigate("/verify-otp", { state: { email } });
         } catch (err: any) {
             toast({
                 title: "Registration Failed",

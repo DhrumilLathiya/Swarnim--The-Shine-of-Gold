@@ -1,9 +1,15 @@
-import { v4 as uuidv4 } from "uuid";
-import supabase from "../config/database.js";
-
 /**
- * Create a new generation record
+ * AI GENERATION MODEL
+ * 
+ * PURPOSE: Manages records of AI-generated designs and their processing history.
+ * USAGE: Used by AI routes (e.g., src/routes/ai.js) and user history views to track design tasks.
  */
+import { supabase } from "../config/database.js"; // Uses the administrative Supabase client for history logs
+
+// STATUS CONSTANTS: Defines the allowed states for an AI generation task
+const VALID_STATUS = ["pending", "processing", "completed", "failed"];
+
+// CREATE RECORD: Initializes a new entry in the generation_history table
 export const createGeneration = async ({
   user_id,
   uploaded_image_url,
@@ -11,7 +17,7 @@ export const createGeneration = async ({
   ai_result = null,
   status = "pending",
 }) => {
-  const generationId = uuidv4();
+  const generationId = uuidv4(); // Generate a unique identifier for the task
 
   const { data, error } = await supabase
     .from("generation_history")
@@ -27,91 +33,105 @@ export const createGeneration = async ({
       },
     ])
     .select()
-    .single();
+    .single(); // Ensure we get the created record back immediately
 
   if (error) {
-    throw new Error(`Failed to create generation: ${error.message}`);
+    throw new Error(`Create failed: ${error.message}`);
   }
 
   return data;
 };
 
-/**
- * Get all generations for a user
- */
-export const getUserGenerations = async (userId, limit = 50, offset = 0) => {
-  const { data, error } = await supabase
+// FETCH USER HISTORY: Retrieves a paginated list of generations for a specific user
+export const getUserGenerations = async (
+  userId,
+  limit = 20,
+  offset = 0
+) => {
+  const { data, error, count } = await supabase
     .from("generation_history")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("user_id", userId)
     .range(offset, offset + limit - 1)
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(`Failed to fetch generations: ${error.message}`);
+    throw new Error(`Fetch failed: ${error.message}`);
   }
 
-  return data;
+  return {
+    total: count,
+    data
+  };
 };
 
-/**
- * Get a single generation record by ID
- */
+// FETCH SINGLE RECORD: Retrieves a specific generation record by its ID
 export const getGenerationById = async (generationId) => {
   const { data, error } = await supabase
     .from("generation_history")
     .select("*")
     .eq("id", generationId)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== "PGRST116") {
-    throw new Error(`Failed to fetch generation: ${error.message}`);
+  if (error) {
+    throw new Error(`Fetch failed: ${error.message}`);
   }
 
   return data || null;
 };
 
-/**
- * Update generation with results
- */
+// UPDATE TASK: Modifies an existing generation record (e.g., when the AI finishes processing)
 export const updateGeneration = async (generationId, updates) => {
+  // Integrity Check: Only allow updates if the new status is valid
+  if (updates.status && !VALID_STATUS.includes(updates.status)) {
+    throw new Error("Invalid status value");
+  }
+
   const { data, error } = await supabase
     .from("generation_history")
     .update({
       ...updates,
-      updated_at: new Date(),
+      updated_at: new Date() // Timestamp the update
     })
     .eq("id", generationId)
     .select()
     .single();
 
   if (error) {
-    throw new Error(`Failed to update generation: ${error.message}`);
+    throw new Error(`Update failed: ${error.message}`);
   }
 
   return data;
 };
 
-/**
- * Get all generations (admin only)
- */
-export const getAllGenerations = async (limit = 50, offset = 0) => {
-  const { data, error } = await supabase
+/* ==========================================================
+   GET ALL GENERATIONS (Admin)
+========================================================== */
+
+export const getAllGenerations = async (
+  limit = 50,
+  offset = 0
+) => {
+  const { data, error, count } = await supabase
     .from("generation_history")
-    .select("*")
+    .select("*", { count: "exact" })
     .range(offset, offset + limit - 1)
     .order("created_at", { ascending: false });
 
   if (error) {
-    throw new Error(`Failed to fetch generations: ${error.message}`);
+    throw new Error(`Fetch failed: ${error.message}`);
   }
 
-  return data;
+  return {
+    total: count,
+    data
+  };
 };
 
-/**
- * Delete a generation record (admin only)
- */
+/* ==========================================================
+   DELETE GENERATION (Admin)
+========================================================== */
+
 export const deleteGeneration = async (generationId) => {
   const { error } = await supabase
     .from("generation_history")
@@ -119,7 +139,7 @@ export const deleteGeneration = async (generationId) => {
     .eq("id", generationId);
 
   if (error) {
-    throw new Error(`Failed to delete generation: ${error.message}`);
+    throw new Error(`Delete failed: ${error.message}`);
   }
 
   return true;
