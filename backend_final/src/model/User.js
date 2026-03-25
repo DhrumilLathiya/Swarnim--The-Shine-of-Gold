@@ -1,0 +1,115 @@
+/**
+ * USER DATA MODEL
+ * 
+ * PURPOSE: Manages customer and administrator profiles within the application.
+ * USAGE: Critical for authentication (src/routes/auth.js) and user profile management (src/routes/user.js).
+ */
+import { v4 as uuidv4 } from "uuid"; // Utility for creating unique User IDs
+import supabase from "../config/database.js"; // Connection for user-related database queries
+
+// GET BY ID: Retrieves a specific user's public and protected profile data
+export const getUserById = async (userId) => {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*") // Selecting all fields including roles
+    .eq("id", userId) // Filter by unique identifier
+    .single(); // We expect exactly one record
+
+  if (error) {
+    throw new Error(`Failed to fetch user: ${error.message}`);
+  }
+
+  return data;
+};
+
+/**
+ * Get a user by email
+ */
+export const getUserByEmail = async (email) => {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .single();
+
+  // PGRST116 = No rows found (not an actual error)
+  if (error && error.code !== "PGRST116") {
+    throw new Error(`Failed to fetch user: ${error.message}`);
+  }
+
+  return data || null;
+};
+
+// REGISTRATION: Creates a new user profile with a default 'USER' role
+export const createUser = async (name, email, passwordHash) => {
+  const userId = uuidv4(); // Assign unique UUID
+
+  const { data, error } = await supabase
+    .from("users")
+    .insert([
+      {
+        id: userId,
+        name,
+        email,
+        password: passwordHash, // Store the encrypted password hash
+        role: "USER", // Default role assignment
+      },
+    ])
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create user: ${error.message}`);
+  }
+
+  return data;
+};
+
+/**
+ * Update user profile
+ */
+export const updateUser = async (userId, updates) => {
+  const { data, error } = await supabase
+    .from("users")
+    .update(updates)
+    .eq("id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update user: ${error.message}`);
+  }
+
+  return data;
+};
+
+/**
+ * Get all users (admin only)
+ */
+export const getAllUsers = async () => {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, name, email, role, created_at");
+
+  if (error) {
+    throw new Error(`Failed to fetch users: ${error.message}`);
+  }
+
+  return data;
+};
+
+/**
+ * Delete a user by ID (for rollback)
+ */
+export const deleteUser = async (userId) => {
+  const { error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(`Failed to delete user: ${error.message}`);
+  }
+
+  return true;
+};
