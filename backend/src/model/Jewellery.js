@@ -1,15 +1,19 @@
-import { v4 as uuidv4 } from "uuid";
-import supabase from "../config/database.js";
-
 /**
- * Get all jewellery items
+ * JEWELLERY DATA MODEL
+ * 
+ * PURPOSE: The primary model for managing jewelry product data in Supabase.
+ * USAGE: Used across the catalog (src/routes/productRoutes.js) and admin dashboard (src/routes/admin.js).
  */
+import { v4 as uuidv4 } from "uuid"; // Generates secure unique IDs for new products
+import supabase from "../config/database.js"; // Administrative client for protected product operations
+
+// FETCH ALL: Retrieves a paginated list of catalog items
 export const getAllJewellery = async (limit = 50, offset = 0) => {
   const { data, error } = await supabase
-    .from("jewellery")
+    .from("jewellery") // Targeting the main jewellery table
     .select("*")
-    .range(offset, offset + limit - 1)
-    .order("created_at", { ascending: false });
+    .range(offset, offset + limit - 1) // Pagination support
+    .order("created_at", { ascending: false }); // Sort by newest items first
 
   if (error) {
     throw new Error(`Failed to fetch jewellery: ${error.message}`);
@@ -35,9 +39,7 @@ export const getJewelleryById = async (jewelleryId) => {
   return data || null;
 };
 
-/**
- * Create a new jewellery item (admin only)
- */
+// CREATE: Admin only - Inserts a new luxury item into the database
 export const createJewellery = async ({
   title,
   type,
@@ -46,7 +48,7 @@ export const createJewellery = async ({
   image_url,
   description = null,
 }) => {
-  const jewelleryId = uuidv4();
+  const jewelleryId = uuidv4(); // Assign a fresh unique ID
 
   const { data, error } = await supabase
     .from("jewellery")
@@ -62,7 +64,7 @@ export const createJewellery = async ({
       },
     ])
     .select()
-    .single();
+    .single(); // Get the inserted object back directly
 
   if (error) {
     throw new Error(`Failed to create jewellery: ${error.message}`);

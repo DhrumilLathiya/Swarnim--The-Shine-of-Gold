@@ -10,8 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios"; // ✅ ONLY NEW IMPORT
+import { useWishlist } from "@/context/WishlistContext";
+import { useCart } from "@/context/CartContext";
 
 const AccountPage = () => {
+  const { refreshWishlist } = useWishlist();
+  const { refreshCart } = useCart();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
@@ -34,22 +38,31 @@ const AccountPage = () => {
 
       // Save JWT Token
       localStorage.setItem("token", res.data.access_token);
-
-    if (res.data.user?.role === "ADMIN") {
-      localStorage.setItem("isAdminLoggedIn", "true");
-    }
+      if (res.data.user?.id) {
+        localStorage.setItem("userId", res.data.user.id);
+        localStorage.setItem("userName", res.data.user.name); // Store user name
+      }
 
       toast({
         title: "Login Successful",
         description: "Welcome back!",
       });
 
-      navigate("/admin/dashboard");
+      if (res.data.user?.role === "ADMIN") {
+        localStorage.setItem("isAdminLoggedIn", "true");
+        navigate("/admin/dashboard");
+      } else {
+        localStorage.setItem("isAdminLoggedIn", "false");
+        await Promise.all([refreshWishlist(), refreshCart()]);
+        navigate("/");
+      }
 
     } catch (err: any) {
       toast({
         title: "Login Failed",
         description:
+          err?.response?.data?.error ||
+          err?.response?.data?.detail ||
           err?.response?.data?.message ||
           "Invalid email or password",
         variant: "destructive",
@@ -57,6 +70,19 @@ const AccountPage = () => {
     }
 
     setIsLoading(false);
+  };
+
+  const handleLogout = async () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userName"); // Remove user name
+    localStorage.removeItem("isAdminLoggedIn");
+    await Promise.all([refreshWishlist(), refreshCart()]);
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+    navigate("/");
   };
 
   return (
@@ -79,7 +105,7 @@ const AccountPage = () => {
                     <span>Profile</span>
                   </Link>
 
-                  <Link to="/account/orders" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
+                  <Link to="/orders" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
                     <Package className="h-6 w-6" />
                     <span>My Orders</span>
                   </Link>
@@ -89,22 +115,15 @@ const AccountPage = () => {
                     <span>Wishlist</span>
                   </Link>
 
-                  <Link to="/account/addresses" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
+                  <Link to="/addresses" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
                     <MapPin className="h-6 w-6" />
                     <span>Addresses</span>
                   </Link>
 
-                  <Link to="/account/payment" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
-                    <CreditCard className="h-6 w-6" />
-                    <span>Payment Methods</span>
-                  </Link>
-
-                  <Link to="/account/settings" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
-                    <Settings className="h-6 w-6" />
-                    <span>Settings</span>
-                  </Link>
-
-                  <button className="flex items-center gap-3 p-4 rounded-lg w-full text-left hover:bg-card transition-colors text-red-500 text-base">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 p-4 rounded-lg w-full text-left hover:bg-card transition-colors text-red-500 text-base"
+                  >
                     <LogOut className="h-6 w-6" />
                     <span>Logout</span>
                   </button>

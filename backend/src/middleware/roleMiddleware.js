@@ -1,6 +1,17 @@
+/**
+ * ROLE-BASED ACCESS CONTROL (RBAC)
+ * 
+ * PURPOSE: Restricts access to routes based on user roles (e.g., ADMIN, USER).
+ * USAGE: Used in various routes to enforce security policies (e.g., src/routes/jewellery.js).
+ */
+// ROLE AUTHORIZATION: A factory function that returns a middleware for checking multiple roles
 export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
+<<<<<<< dhrumil
+    // 1. AUTH CHECK: Ensure the user is identified (must be used after authenticateToken)
+=======
 
+>>>>>>> main
     if (!req.user) {
       return res.status(401).json({
         error: "Unauthorized",
@@ -8,16 +19,20 @@ export const authorizeRoles = (...allowedRoles) => {
       });
     }
 
-    console.log("🛡️ Role Check:", { userRole: req.user.role, allowedRoles });
-
+    // 2. INITIAL ROLE CHECK: Verify if the current user's role is in the whitelist
     if (!allowedRoles.includes(req.user.role)) {
-      console.log("❌ Access Denied: Role mismatch");
       return res.status(403).json({
         error: "Forbidden",
         detail: "User role not defined"
       });
     }
 
+<<<<<<< dhrumil
+    // 3. CASE-INSENSITIVE VALIDATION: Normalize roles to ensure consistent permission checking
+    const userRole = req.user.role.toLowerCase();
+    const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
+
+=======
     const userRole = req.user.role.toLowerCase();
     const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
 
@@ -26,6 +41,7 @@ export const authorizeRoles = (...allowedRoles) => {
       allowedRoles: normalizedAllowedRoles
     });
 
+>>>>>>> main
     if (!normalizedAllowedRoles.includes(userRole)) {
       return res.status(403).json({
         error: "Forbidden",
@@ -33,6 +49,7 @@ export const authorizeRoles = (...allowedRoles) => {
       });
     }
 
+    // 4. ACCESS GRANTED: Proceed to the next middleware or final route handler
     next();
   };
 };

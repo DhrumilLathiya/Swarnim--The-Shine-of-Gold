@@ -1,6 +1,17 @@
+/**
+ * PUBLIC PRODUCT CATALOGUE ROUTES
+ * 
+ * PURPOSE: Provides high-performance, public endpoints for browsing the jewelry inventory.
+ * USAGE: Used by the main website shop page and product detail pages.
+ */
 import express from "express";
+<<<<<<< dhrumil
+import { supabase } from "../config/database.js"; // Standard DB connection
+import { validate as isUuid } from "uuid"; // ID validation helper
+=======
 import { supabase } from "../config/database.js";
 import { validate as isUuid } from "uuid";
+>>>>>>> main
 
 const router = express.Router();
 
@@ -42,7 +53,12 @@ const router = express.Router();
  *       200:
  *         description: Paginated product list
  */
+<<<<<<< dhrumil
+// LIST PRODUCTS: Paginated retrieval of jewelry items with optional category filtering
+router.get("/products", async (req, res) => {
+=======
 router.get("/", async (req, res) => {
+>>>>>>> main
   try {
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 10;
@@ -64,9 +80,12 @@ router.get("/", async (req, res) => {
         category,
         description,
         image_url,
-        availability,
-        collection_tag,
-        created_at
+        is_active,
+        created_at,
+        product_variants (
+          additional_price,
+          stock_quantity
+        )
         `,
         { count: "exact" }
       )
@@ -87,12 +106,27 @@ router.get("/", async (req, res) => {
       });
     }
 
+<<<<<<< dhrumil
+    // Map data for backward compatibility
+    const mappedData = data.map(item => {
+      // Get price from the first variant if available
+      const price = item.product_variants?.[0]?.additional_price || 0;
+      return {
+        ...item,
+        product_name: item.title,
+        final_price: price,
+        stock_quantity: item.product_variants?.[0]?.stock_quantity || 0
+      };
+    });
+
+=======
+>>>>>>> main
     return res.status(200).json({
       page,
       limit,
       total: count,
       total_pages: Math.ceil(count / limit),
-      data
+      data: mappedData
     });
 
   } catch (error) {
@@ -123,21 +157,52 @@ router.get("/", async (req, res) => {
  *       404:
  *         description: Product not found
  */
+// PRODUCT DETAILS: Fetches an individual product by ID, including its variants and image gallery
 router.get("/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
+    // Fetch product with variants
+    const { data: product, error: productError } = await supabase
       .from("jewellery_products")
-      .select("*")
+      .select(`
+        *,
+        product_variants (*)
+      `)
       .eq("id", id)
       .single();
 
-    if (error) {
+    if (productError || !product) {
+      console.error("Supabase Product Fetch Error:", productError?.message);
       return res.status(404).json({ error: "Product not found" });
     }
 
-    return res.json(data);
+    // Try to fetch images separately (since relationship might be missing in schema cache)
+    let images = [];
+    try {
+      const { data: imageData, error: imageError } = await supabase
+        .from("product_images")
+        .select("*")
+        .eq("product_id", id);
+
+      if (!imageError) {
+        images = imageData || [];
+      }
+    } catch (e) {
+      console.warn("Could not fetch product images separately:", e.message);
+    }
+
+    // Map for backward compatibility
+    const mappedProduct = {
+      ...product,
+      product_name: product.title,
+      final_price: product.product_variants?.[0]?.additional_price || 0,
+      stock_quantity: product.product_variants?.[0]?.stock_quantity || 0,
+      image_url: product.image_url || images[0]?.image_url,
+      product_images: images
+    };
+
+    return res.json(mappedProduct);
   } catch (error) {
     console.error("Get Product By ID Error:", error.message);
     return res.status(500).json({ error: "Internal server error" });

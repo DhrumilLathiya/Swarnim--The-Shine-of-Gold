@@ -1,6 +1,18 @@
+<<<<<<< dhrumil
+/**
+ * USER ADDRESS MANAGEMENT ROUTES
+ * 
+ * PURPOSE: Handles the storage, retrieval, and updates of user shipping addresses.
+ * USAGE: Targeted by user profile settings and checkout address selection components.
+ */
+import express from "express";
+import { supabase } from "../config/database.js"; // Connection for address table operations
+import { authenticateToken } from "../middleware/auth.js"; // Restricts access to authenticated users
+=======
 import express from "express";
 import { supabase } from "../config/database.js";
 import { authenticateToken } from "../middleware/auth.js";
+>>>>>>> main
 
 const router = express.Router();
 
@@ -24,6 +36,10 @@ const router = express.Router();
  *     security:
  *       - BearerAuth: []
  */
+<<<<<<< dhrumil
+// CREATE ADDRESS: Adds a new shipping destination and handles default address logic
+=======
+>>>>>>> main
 router.post("/", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
@@ -39,6 +55,10 @@ router.post("/", authenticateToken, async (req, res) => {
       is_default = false
     } = req.body;
 
+<<<<<<< dhrumil
+    // REQUIRED FIELDS: Ensure critical shipping details are provided
+=======
+>>>>>>> main
     if (!full_name || !phone || !line1 || !city || !state || !postal_code) {
       return res.status(400).json({
         success: false,
@@ -46,7 +66,11 @@ router.post("/", authenticateToken, async (req, res) => {
       });
     }
 
+<<<<<<< dhrumil
+    // DEFAULT LOGIC: If this new address is set as default, clear existing default flag for other addresses
+=======
     // If setting default → unset previous default
+>>>>>>> main
     if (is_default) {
       await supabase
         .from("addresses")
@@ -54,6 +78,10 @@ router.post("/", authenticateToken, async (req, res) => {
         .eq("user_id", user_id);
     }
 
+<<<<<<< dhrumil
+    // PERSISTENCE: Save the new address linked to the authenticated user's ID
+=======
+>>>>>>> main
     const { data, error } = await supabase
       .from("addresses")
       .insert([
@@ -82,6 +110,10 @@ router.post("/", authenticateToken, async (req, res) => {
     });
 
   } catch (err) {
+<<<<<<< dhrumil
+    console.error("DEBUG: Failed to add address error:", err);
+=======
+>>>>>>> main
     return res.status(500).json({
       success: false,
       message: "Failed to add address",

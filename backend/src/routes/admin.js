@@ -1,3 +1,6 @@
+/**
+ * ADMINISTRATIVE PRODUCT ROUTES
+ */
 import express from "express";
 import { supabase } from "../config/database.js";
 import { authenticateToken } from "../middleware/auth.js";
@@ -8,104 +11,8 @@ import { calculateFinalPrice } from "../services/pricingService.js";
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Admin
- *   description: Admin-only jewellery management endpoints
- */
+/* ================= CREATE PRODUCT ================= */
 
-/**
- * @swagger
- * components:
- *   schemas:
- *     JewelleryCreateRequest:
- *       type: object
- *       required:
- *         - product_name
- *         - category
- *         - sku
- *         - metal_type
- *         - purity
- *         - metal_weight
- *         - making_charges
- *         - stock_quantity
- *         - availability
- *       properties:
- *         product_name:
- *           type: string
- *           example: 22K Gold Ring
- *         category:
- *           type: string
- *           example: Rings
- *         collection_tag:
- *           type: string
- *           example: Wedding Collection
- *         sku:
- *           type: string
- *           example: GR-22K-001
- *         metal_type:
- *           type: string
- *           enum: [gold, silver, platinum]
- *         purity:
- *           type: string
- *           example: 22K
- *         metal_weight:
- *           type: number
- *           example: 10.5
- *         diamond_weight:
- *           type: number
- *           example: 0.5
- *         diamond_quality:
- *           type: string
- *           example: VVS1
- *         making_charges:
- *           type: number
- *           example: 1500
- *         discount:
- *           type: number
- *           example: 5
- *         stock_quantity:
- *           type: integer
- *           example: 10
- *         availability:
- *           type: string
- *           enum: [in_stock, out_of_stock, preorder]
- *         description:
- *           type: string
- *         image_url:
- *           type: string
- *         metal_price:
- *           type: number
- *           example: 5800
- */
-
-/**
- * @swagger
- * /admin/jewellery:
- *   post:
- *     summary: Create jewellery product with live pricing
- *     tags: [Admin]
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/JewelleryCreateRequest'
- *     responses:
- *       201:
- *         description: Product created successfully
- *       400:
- *         description: Validation error
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Admin access required
- *       500:
- *         description: Server error
- */
 router.post(
   "/jewellery",
   authenticateToken,
@@ -131,7 +38,9 @@ router.post(
         metal_price: manual_metal_price
       } = req.body;
 
-      /* ================= VALIDATION ================= */
+      console.log("DEBUG:", req.body);
+
+      /* ===== VALIDATION ===== */
 
       if (
         !product_name ||
@@ -150,7 +59,7 @@ router.post(
         });
       }
 
-      const allowedMetals = ["gold", "silver", "platinum"];
+      const allowedMetals = ["gold", "silver", "platinum", "diamond-jewelry"];
       if (!allowedMetals.includes(metal_type.toLowerCase())) {
         return res.status(400).json({
           success: false,
@@ -158,15 +67,7 @@ router.post(
         });
       }
 
-      const allowedAvailability = ["in_stock", "out_of_stock", "preorder"];
-      if (!allowedAvailability.includes(availability)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid availability value"
-        });
-      }
-
-      /* ================= NUMERIC CASTING ================= */
+      /* ===== NUMERIC ===== */
 
       const numericMetalWeight = Number(metal_weight);
       const numericDiamondWeight = Number(diamond_weight);
@@ -185,10 +86,10 @@ router.post(
         });
       }
 
-      /* ================= SKU CHECK ================= */
+      /* ===== SKU CHECK ===== */
 
       const { data: existingSku } = await supabase
-        .from("jewellery_products")
+        .from("product_variants")
         .select("id")
         .eq("sku", sku)
         .maybeSingle();
@@ -200,43 +101,17 @@ router.post(
         });
       }
 
-      /* ================= CATEGORY CHECK ================= */
+      /* ===== PRICING ===== */
 
-      const { data: categoryExists } = await supabase
-        .from("categories")
-        .select("id")
-        .eq("name", category)
-        .maybeSingle();
+      let metalPricePerGram = manual_metal_price
+        ? Number(manual_metal_price)
+        : await fetchGoldRate(purity);
 
-      if (!categoryExists) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid category"
-        });
-      }
-
-      /* ================= FETCH LIVE PRICES ================= */
-
-      let metalPricePerGram = 0;
       let diamondPricePerCarat = 0;
 
-      try {
-        metalPricePerGram = manual_metal_price
-          ? Number(manual_metal_price)
-          : await fetchGoldRate(purity);
-      } catch {
-        metalPricePerGram = 0;
-      }
-
       if (numericDiamondWeight > 0) {
-        try {
-          diamondPricePerCarat = await getDiamondRate(diamond_quality);
-        } catch {
-          diamondPricePerCarat = 0;
-        }
+        diamondPricePerCarat = await getDiamondRate(diamond_quality);
       }
-
-      /* ================= PRICE CALCULATION ================= */
 
       const pricing = calculateFinalPrice({
         metalPricePerGram,
@@ -247,58 +122,119 @@ router.post(
         discount: numericDiscount
       });
 
-      if (!pricing?.finalPrice || isNaN(pricing.finalPrice)) {
-        return res.status(400).json({
-          success: false,
-          message: "Final price calculation failed"
-        });
-      }
+      /* ===== INSERT PRODUCT ===== */
 
-      /* ================= INSERT PRODUCT ================= */
-
-      const { data, error } = await supabase
+      const { data: productData } = await supabase
         .from("jewellery_products")
-        .insert([
-          {
-            product_name: product_name.trim(),
-            category,
-            collection_tag,
-            sku: sku.trim(),
-            metal_type: metal_type.toLowerCase(),
-            purity,
-            metal_weight: numericMetalWeight,
-            diamond_weight: numericDiamondWeight,
-            making_charges: numericMakingCharges,
-            discount: numericDiscount,
-            metal_price_per_gram: metalPricePerGram,
-            diamond_price_per_carat: diamondPricePerCarat,
-            final_price: pricing.finalPrice,
-            stock_quantity: numericStockQuantity,
-            availability,
-            description,
-            image_url,
-            created_by: req.user.user_id
-          }
-        ])
+        .insert([{
+          title: product_name,
+          category,
+          collection_tag,
+          description,
+          image_url,
+          is_active: true
+        }])
         .select()
         .single();
 
-      if (error) throw error;
+      const { data: variantData } = await supabase
+        .from("product_variants")
+        .insert([{
+          product_id: productData.id,
+          sku,
+          metal_type,
+          purity,
+          weight: numericMetalWeight,
+          additional_price: pricing.finalPrice,
+          stock_quantity: numericStockQuantity
+        }])
+        .select()
+        .single();
 
       return res.status(201).json({
         success: true,
-        message: "Product created successfully",
-        pricing_breakdown: pricing,
-        product: data
+        product: { ...productData, ...variantData }
       });
 
     } catch (err) {
-      console.error("Admin Product Create Error:", err.message);
       return res.status(500).json({
         success: false,
-        message: "Internal server error",
-        detail: err.message
+        message: err.message
       });
+    }
+  }
+);
+
+/* ================= UPDATE PRODUCT ================= */
+
+router.put(
+  "/jewellery/:id",
+  authenticateToken,
+  authorizeRoles("ADMIN"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        product_name,
+        category,
+        collection_tag,
+        description,
+        image_url,
+        metal_type,
+        purity,
+        metal_weight,
+        stock_quantity,
+        final_price
+      } = req.body;
+
+      await supabase
+        .from("jewellery_products")
+        .update({
+          title: product_name,
+          category,
+          collection_tag,
+          description,
+          image_url
+        })
+        .eq("id", id);
+
+      await supabase
+        .from("product_variants")
+        .update({
+          metal_type,
+          purity,
+          weight: metal_weight,
+          stock_quantity,
+          additional_price: final_price
+        })
+        .eq("product_id", id);
+
+      res.json({ success: true });
+
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+/* ================= DELETE PRODUCT ================= */
+
+router.delete(
+  "/jewellery/:id",
+  authenticateToken,
+  authorizeRoles("ADMIN"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      await supabase.from("product_images").delete().eq("product_id", id);
+      await supabase.from("product_variants").delete().eq("product_id", id);
+      await supabase.from("jewellery_products").delete().eq("id", id);
+
+      res.json({ success: true });
+
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
   }
 );

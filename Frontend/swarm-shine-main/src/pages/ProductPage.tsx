@@ -12,11 +12,17 @@ import {
   Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 import { getProductById } from "@/api/productApi";
+import ProductReviews from "@/components/product/ProductReviews";
+import axios from "axios";
 
 const ProductPage = () => {
   const { id } = useParams();
+  const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
 
   // ✅ Backend Fetch
   const {
@@ -28,6 +34,19 @@ const ProductPage = () => {
     queryFn: () => getProductById(id || ""),
     enabled: !!id,
   });
+
+  // Live review summary
+  const { data: reviewData } = useQuery({
+    queryKey: ["reviews", id],
+    queryFn: async () => {
+      const res = await axios.get(`http://localhost:3000/reviews/${id}`);
+      return res.data;
+    },
+    enabled: !!id,
+  });
+
+  const avgRating = reviewData?.average_rating ?? 0;
+  const reviewCount = reviewData?.count ?? 0;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -131,14 +150,14 @@ const ProductPage = () => {
                       <Star
                         key={i}
                         className={`h-5 w-5 ${
-                          i < Math.floor(product.rating || 0)
-                            ? "text-accent fill-accent"
+                          i < Math.round(avgRating)
+                            ? "text-amber-400 fill-amber-400"
                             : "text-muted"
                         }`}
                       />
                     ))}
                     <span className="text-base text-muted-foreground ml-2">
-                      ({product.reviews || 0} reviews)
+                      {avgRating > 0 ? avgRating.toFixed(1) : "No"} ({reviewCount} {reviewCount === 1 ? "review" : "reviews"})
                     </span>
                   </div>
                 </div>
@@ -206,9 +225,11 @@ const ProductPage = () => {
                     variant="gold"
                     size="lg"
                     className="flex-1 h-14 text-lg font-semibold shadow-md hover:shadow-lg transition-shadow"
+                    onClick={() => addToCart(product.id)}
+                    disabled={!product.inStock}
                   >
                     <ShoppingBag className="h-5 w-5 mr-2" />
-                    Add to Bag
+                    {product.inStock ? "Add to Bag" : "Out of Stock"}
                   </Button>
 
                   <Link to={`/product/${id}/modify`} className="flex-1">
@@ -224,9 +245,20 @@ const ProductPage = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="goldOutline" size="lg" className="flex-1 h-12">
-                    <Heart className="h-5 w-5 mr-2" />
-                    Wishlist
+                  <Button 
+                    variant="goldOutline" 
+                    size="lg" 
+                    className="flex-1 h-12"
+                    onClick={() => {
+                      if (isInWishlist(product.id)) {
+                        removeFromWishlist(product.id);
+                      } else {
+                        addToWishlist(product.id);
+                      }
+                    }}
+                  >
+                    <Heart className={`h-5 w-5 mr-2 ${isInWishlist(product.id) ? "fill-accent text-accent" : ""}`} />
+                    {isInWishlist(product.id) ? "In Wishlist" : "Wishlist"}
                   </Button>
 
                   <Button variant="goldOutline" size="lg" className="flex-1 h-12">
@@ -239,6 +271,9 @@ const ProductPage = () => {
           </div>
         </div>
       </main>
+
+      {/* Reviews Section */}
+      {id && <ProductReviews productId={id} />}
 
       <Footer />
     </div>

@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 const SECRET = process.env.SECRET_KEY;
-console.log("JWT SECRET =", process.env.SECRET_KEY);//
 
 /**
  * Hash password

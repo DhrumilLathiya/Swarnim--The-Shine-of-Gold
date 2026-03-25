@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Search, User, Heart, ShoppingBag, Menu, X, ChevronDown } from "lucide-react";
+import { Search, User, Heart, ShoppingBag, Menu, X, ChevronDown, Trash2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { useWishlist } from "@/context/WishlistContext";
+import { useCart } from "@/context/CartContext";
 
 interface SubCategory {
   name: string;
@@ -21,8 +23,41 @@ interface NavCategory {
 }
 
 const Navbar = () => {
+  const { wishlist, removeFromWishlist } = useWishlist();
+  const { cartCount } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [showWishlistPreview, setShowWishlistPreview] = useState(false);
+  const [userName, setUserName] = useState<string | null>(localStorage.getItem("userName"));
+
+  // Sync user info on mount and when storage changes (e.g., login/logout)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setUserName(localStorage.getItem("userName"));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also check periodically or on mount since some local changes don't trigger 'storage' event in same tab
+    const interval = setInterval(handleStorageChange, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const getFullImageUrl = (url: string) => {
+    if (!url) return "";
+    return url.startsWith("http") ? url : `http://localhost:3000${url}`;
+  };
 
   const navLinks: NavCategory[] = [
     {
@@ -291,22 +326,98 @@ const Navbar = () => {
                 <Search className="h-[22px] w-[22px]" />
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" className="hidden sm:flex h-12 w-12" asChild>
+            <Button variant="ghost" size="icon" className="hidden sm:flex h-12 w-12" asChild title="My Orders">
+              <Link to="/orders">
+                <Package className="h-[22px] w-[22px]" />
+              </Link>
+            </Button>
+            <Button variant="ghost" className="hidden sm:flex h-12 px-3 items-center gap-2" asChild title="Account">
               <Link to="/account">
+                {userName && (
+                  <span className="text-sm font-medium text-foreground/80 hidden xl:inline-block">
+                    Hi, {userName.split(' ')[0]}
+                  </span>
+                )}
                 <User className="h-[22px] w-[22px]" />
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" className="h-12 w-12" asChild>
-              <Link to="/wishlist">
-                <Heart className="h-[22px] w-[22px]" />
-              </Link>
-            </Button>
+
+            {/* Wishlist Button with Hover Preview */}
+            <div
+              className="relative"
+              onMouseEnter={() => setShowWishlistPreview(true)}
+              onMouseLeave={() => setShowWishlistPreview(false)}
+            >
+              <Button variant="ghost" size="icon" className="h-12 w-12" asChild>
+                <Link to="/wishlist">
+                  <Heart className="h-[22px] w-[22px]" />
+                  {wishlist.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-accent-foreground text-[10px] rounded-full flex items-center justify-center font-bold">
+                      {wishlist.length}
+                    </span>
+                  )}
+                </Link>
+              </Button>
+
+              {/* Wishlist Preview Dropdown */}
+              <AnimatePresence>
+                {showWishlistPreview && wishlist.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full right-0 w-80 bg-background border border-border rounded-lg shadow-2xl p-4 z-50 mt-2"
+                  >
+                    <h4 className="font-semibold text-sm mb-4">My Wishlist ({wishlist.length})</h4>
+                    <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
+                      {wishlist.slice(0, 3).map((item) => (
+                        <div key={item.id} className="flex gap-3 group">
+                          <div className="w-16 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
+                            <img
+                              src={getFullImageUrl(item.jewellery_products.image_url)}
+                              alt={item.jewellery_products.product_name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h5 className="text-sm font-medium truncate">{item.jewellery_products.product_name}</h5>
+                            <p className="text-accent text-xs font-semibold">{formatPrice(item.jewellery_products.final_price)}</p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              removeFromWishlist(item.jewellery_products.id);
+                            }}
+                            className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    {wishlist.length > 3 && (
+                      <p className="text-xs text-center text-muted-foreground mt-4">
+                        + {wishlist.length - 3} more items
+                      </p>
+                    )}
+                    <Button variant="gold" className="w-full mt-4 h-10 text-sm" asChild>
+                      <Link to="/wishlist" onClick={() => setShowWishlistPreview(false)}>
+                        View All Wishlist
+                      </Link>
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <Button variant="ghost" size="icon" className="relative h-12 w-12" asChild>
               <Link to="/cart">
                 <ShoppingBag className="h-[22px] w-[22px]" />
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-accent text-accent-foreground text-xs rounded-full flex items-center justify-center font-medium">
-                  0
-                </span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-accent text-accent-foreground text-xs rounded-full flex items-center justify-center font-medium">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             </Button>
           </div>
@@ -344,7 +455,19 @@ const Navbar = () => {
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/account" onClick={() => setIsOpen(false)}>
                     <User className="h-4 w-4 mr-2" />
-                    Account
+                    {userName ? `Hi, ${userName.split(' ')[0]}` : "Account"}
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/orders" onClick={() => setIsOpen(false)}>
+                    <Package className="h-4 w-4 mr-2" />
+                    Orders
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/wishlist" onClick={() => setIsOpen(false)}>
+                    <Heart className="h-4 w-4 mr-2" />
+                    Wishlist ({wishlist.length})
                   </Link>
                 </Button>
               </div>

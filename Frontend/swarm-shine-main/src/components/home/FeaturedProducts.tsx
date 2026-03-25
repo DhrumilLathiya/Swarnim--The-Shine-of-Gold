@@ -3,6 +3,9 @@ import { Heart, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useWishlist } from "@/context/WishlistContext";
+import { useCart } from "@/context/CartContext";
+import { cn } from "@/lib/utils";
 
 import FeaturedPromoSlider from "./FeaturedPromoSlider";
 import { getAllProducts } from "@/api/productApi";
@@ -17,6 +20,8 @@ const formatPrice = (price: number) => {
 };
 
 const FeaturedProducts = () => {
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
 
   // ✅ Fetch All Products From Backend
   const {
@@ -30,6 +35,22 @@ const FeaturedProducts = () => {
 
   // ✅ Pick 4 Featured Products (Can later change to isFeatured flag)
   const products = allProducts.slice(0, 4);
+
+  const toggleWishlist = (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isInWishlist(productId)) {
+      removeFromWishlist(productId);
+    } else {
+      addToWishlist(productId);
+    }
+  };
+
+  const handleAddToCart = (e: React.MouseEvent, productId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(productId);
+  };
 
   return (
     <section className="py-24 bg-muted/30">
@@ -86,95 +107,100 @@ const FeaturedProducts = () => {
         {/* Products Grid */}
         {!isLoading && !isError && products.length > 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {products.map((product: any, index: number) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.08 }}
-                className="group"
-              >
-                <Link to={`/product/${product.id}`}>
-                  <div className="relative aspect-square bg-card rounded-sm overflow-hidden mb-4">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+            {products.map((product: any, index: number) => {
+              const active = isInWishlist(product.id);
+              return (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.08 }}
+                  className="group"
+                >
+                  <Link to={`/product/${product.id}`}>
+                    <div className="relative aspect-square bg-card rounded-sm overflow-hidden mb-4">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
 
-                    <div className="absolute top-4 left-4 flex flex-col gap-2">
-                      {product.isNew && (
-                        <span className="px-3 py-1.5 bg-accent text-accent-foreground text-sm font-semibold tracking-wide rounded-sm">
-                          NEW
-                        </span>
-                      )}
+                      <div className="absolute top-4 left-4 flex flex-col gap-2">
+                        {product.isNew && (
+                          <span className="px-3 py-1.5 bg-accent text-accent-foreground text-sm font-semibold tracking-wide rounded-sm">
+                            NEW
+                          </span>
+                        )}
 
-                      {product.isBestseller && (
-                        <span className="px-3 py-1.5 bg-primary text-primary-foreground text-sm font-semibold tracking-wide rounded-sm">
-                          BESTSELLER
-                        </span>
-                      )}
+                        {product.isBestseller && (
+                          <span className="px-3 py-1.5 bg-primary text-primary-foreground text-sm font-semibold tracking-wide rounded-sm">
+                            BESTSELLER
+                          </span>
+                        )}
 
-                      {product.originalPrice && (
-                        <span className="px-3 py-1.5 bg-foreground text-background text-sm font-semibold tracking-wide rounded-sm">
-                          SALE
-                        </span>
-                      )}
-                    </div>
+                        {product.originalPrice && (
+                          <span className="px-3 py-1.5 bg-foreground text-background text-sm font-semibold tracking-wide rounded-sm">
+                            SALE
+                          </span>
+                        )}
+                      </div>
 
-                    <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
-                      <Link
-                        to="/wishlist"
-                        className="w-11 h-11 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-background transition-colors shadow-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Heart className="h-5 w-5" />
-                      </Link>
-                    </div>
+                      <div className={cn(
+                        "absolute top-4 right-4 flex flex-col gap-2 transition-all duration-300",
+                        active ? "opacity-100" : "opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+                      )}>
+                        <button
+                          onClick={(e) => toggleWishlist(e, product.id)}
+                          className={cn(
+                            "w-11 h-11 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-all shadow-sm",
+                            active ? "text-red-500 bg-background" : "hover:text-red-500 hover:bg-background"
+                          )}
+                        >
+                          <Heart className={cn("h-5 w-5", active && "fill-current")} />
+                        </button>
+                      </div>
 
-                    <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full transition-transform duration-300 group-hover:translate-y-0">
-                      <Button
-                        asChild
-                        className="w-full gap-2"
-                        size="default"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Link to="/cart">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full transition-transform duration-300 group-hover:translate-y-0">
+                        <Button
+                          className="w-full gap-2"
+                          size="default"
+                          onClick={(e) => handleAddToCart(e, product.id)}
+                        >
                           <ShoppingBag className="h-5 w-5" />
                           Add to Bag
-                        </Link>
-                      </Button>
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <Link
-                      to={`/${product.category?.toLowerCase()}`}
-                      className="text-sm text-muted-foreground tracking-wide uppercase mb-1 hover:text-accent transition-colors"
-                    >
-                      {product.category}
-                    </Link>
+                    <div>
+                      <Link
+                        to={`/${product.category?.toLowerCase()}`}
+                        className="text-sm text-muted-foreground tracking-wide uppercase mb-1 hover:text-accent transition-colors"
+                      >
+                        {product.category}
+                      </Link>
 
-                    <h3 className="font-medium text-base text-foreground mb-2 line-clamp-2">
-                      {product.name}
-                    </h3>
+                      <h3 className="font-medium text-base text-foreground mb-2 line-clamp-2">
+                        {product.name}
+                      </h3>
 
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-lg text-foreground">
-                        {formatPrice(product.price)}
-                      </span>
-
-                      {product.originalPrice && (
-                        <span className="text-base text-muted-foreground line-through">
-                          {formatPrice(product.originalPrice)}
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-lg text-foreground">
+                          {formatPrice(product.price)}
                         </span>
-                      )}
+
+                        {product.originalPrice && (
+                          <span className="text-base text-muted-foreground line-through">
+                            {formatPrice(product.originalPrice)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+                  </Link>
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
           !isLoading &&

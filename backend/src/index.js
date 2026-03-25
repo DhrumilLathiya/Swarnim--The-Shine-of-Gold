@@ -1,7 +1,4 @@
-// =============================
-// Load ENV FIRST (VERY IMPORTANT)
-// =============================
-import "dotenv/config";
+import "./loadEnv.js";
 
 import express from "express";
 import cors from "cors";
@@ -13,6 +10,25 @@ import swaggerJsdoc from "swagger-jsdoc";
 // =============================
 import { config } from "./config/index.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+
+const app = express();
+
+// =============================
+// Middleware
+// =============================
+app.use(cors({
+  origin: ["http://localhost:8080", "http://localhost:5173", "http://localhost:3000"],
+  credentials: true
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Request logger for debugging
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 // =============================
 // Routes
@@ -30,6 +46,13 @@ import reviewsRoutes from "./routes/reviews.js";
 import ratesRoutes from "./routes/rates.js";
 import productVariantRoutes from "./routes/productVariant.js";
 import productRoutes from "./routes/productRoutes.js";
+<<<<<<< dhrumil
+import productImageRoutes from "./routes/productImages.js";
+import categoryRoutes from "./routes/category.js";
+import uploadRoutes from "./routes/upload.js";
+import couponRoutes from "./routes/coupons.js";
+import addressRoutes from "./routes/addresses.js";
+=======
 import uploadRoutes from "./routes/upload.js";
 
 const app = express();
@@ -46,6 +69,7 @@ app.use(cors({
   origin: ["http://localhost:8080", "http://localhost:5173"],
   credentials: true
 }));
+>>>>>>> main
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -106,6 +130,11 @@ app.use("/auth", authRoutes);
 // Core Catalogue
 app.use("/jewellery", jewelleryRoutes);
 app.use("/product-variants", productVariantRoutes);
+<<<<<<< dhrumil
+app.use("/product-images", productImageRoutes);
+app.use("/categories", categoryRoutes);
+=======
+>>>>>>> main
 app.use("/rates", ratesRoutes);
 app.use("/", productRoutes);
 
@@ -114,12 +143,24 @@ app.use("/user", userRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", orderRoutes);
+<<<<<<< dhrumil
+app.use("/addresses", addressRoutes);
+
+// Admin / AI (if needed)
+app.use("/admin", adminRoutes);
+app.use("/admin/coupons", couponRoutes);
+app.use("/ai", aiRoutes);
+app.use("/notifications", notificationRoutes);
+app.use("/reviews", reviewsRoutes);
+app.use("/coupons", couponRoutes);
+=======
 
 // Admin / AI (if needed)
 app.use("/admin", adminRoutes);
 app.use("/ai", aiRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/reviews", reviewsRoutes);
+>>>>>>> main
 
 // Uploads
 app.use("/upload", uploadRoutes);
@@ -137,11 +178,7 @@ app.use(errorHandler);
 const PORT = config.port || 3000;
 
 app.listen(PORT, () => {
-  console.log("==================================");
   console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📚 API Docs → http://localhost:${PORT}/api-docs`);
-  console.log(`🌍 Environment → ${config.nodeEnv}`);
-  console.log("==================================");
 });
 
 export default app;

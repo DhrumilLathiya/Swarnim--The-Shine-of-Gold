@@ -1,3 +1,17 @@
+<<<<<<< dhrumil
+/**
+ * AI GENERATION MODEL
+ * 
+ * PURPOSE: Manages records of AI-generated designs and their processing history.
+ * USAGE: Used by AI routes (e.g., src/routes/ai.js) and user history views to track design tasks.
+ */
+import { supabase } from "../config/database.js"; // Uses the administrative Supabase client for history logs
+
+// STATUS CONSTANTS: Defines the allowed states for an AI generation task
+const VALID_STATUS = ["pending", "processing", "completed", "failed"];
+
+// CREATE RECORD: Initializes a new entry in the generation_history table
+=======
 import { supabase } from "../config/database.js";
 
 /* ==========================================================
@@ -10,6 +24,7 @@ const VALID_STATUS = ["pending", "processing", "completed", "failed"];
    CREATE GENERATION
 ========================================================== */
 
+>>>>>>> main
 export const createGeneration = async ({
   user_id,
   uploaded_image_url,
@@ -17,7 +32,7 @@ export const createGeneration = async ({
   ai_result = null,
   status = "pending",
 }) => {
-  const generationId = uuidv4();
+  const generationId = uuidv4(); // Generate a unique identifier for the task
 
   const { data, error } = await supabase
     .from("generation_history")
@@ -33,7 +48,7 @@ export const createGeneration = async ({
       },
     ])
     .select()
-    .single();
+    .single(); // Ensure we get the created record back immediately
 
   if (error) {
     throw new Error(`Create failed: ${error.message}`);
@@ -42,10 +57,14 @@ export const createGeneration = async ({
   return data;
 };
 
+<<<<<<< dhrumil
+// FETCH USER HISTORY: Retrieves a paginated list of generations for a specific user
+=======
 /* ==========================================================
    GET USER GENERATIONS (Paginated)
 ========================================================== */
 
+>>>>>>> main
 export const getUserGenerations = async (
   userId,
   limit = 20,
@@ -68,10 +87,14 @@ export const getUserGenerations = async (
   };
 };
 
+<<<<<<< dhrumil
+// FETCH SINGLE RECORD: Retrieves a specific generation record by its ID
+=======
 /* ==========================================================
    GET SINGLE GENERATION
 ========================================================== */
 
+>>>>>>> main
 export const getGenerationById = async (generationId) => {
   const { data, error } = await supabase
     .from("generation_history")
@@ -86,11 +109,17 @@ export const getGenerationById = async (generationId) => {
   return data || null;
 };
 
+<<<<<<< dhrumil
+// UPDATE TASK: Modifies an existing generation record (e.g., when the AI finishes processing)
+export const updateGeneration = async (generationId, updates) => {
+  // Integrity Check: Only allow updates if the new status is valid
+=======
 /* ==========================================================
    UPDATE GENERATION
 ========================================================== */
 
 export const updateGeneration = async (generationId, updates) => {
+>>>>>>> main
   if (updates.status && !VALID_STATUS.includes(updates.status)) {
     throw new Error("Invalid status value");
   }
@@ -99,7 +128,11 @@ export const updateGeneration = async (generationId, updates) => {
     .from("generation_history")
     .update({
       ...updates,
+<<<<<<< dhrumil
+      updated_at: new Date() // Timestamp the update
+=======
       updated_at: new Date()
+>>>>>>> main
     })
     .eq("id", generationId)
     .select()

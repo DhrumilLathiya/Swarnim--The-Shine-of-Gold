@@ -1,7 +1,13 @@
+/**
+ * USER PROFILE & HISTORY ROUTES
+ * 
+ * PURPOSE: Manages user-specific data including profiles and AI generation history.
+ * USAGE: Targeted by the customer dashboard and account settings pages.
+ */
 import express from "express";
-import { getUserGenerations } from "../model/Generation.js";
-import { getUserById, updateUser } from "../model/User.js";
-import { authenticateToken } from "../middleware/auth.js";
+import { getUserGenerations } from "../model/Generation.js"; // Fetches AI history
+import { getUserById, updateUser } from "../model/User.js"; // Personal profile management
+import { authenticateToken } from "../middleware/auth.js"; // Ensures user is authenticated
 
 const router = express.Router();
 
@@ -28,6 +34,7 @@ const router = express.Router();
  *       404:
  *         description: User not found
  */
+// GET PROFILE: Fetches the currently authenticated user's profile information
 router.get("/me", authenticateToken, async (req, res) => {
   try {
     const { user_id } = req.user;
@@ -82,6 +89,7 @@ router.get("/me", authenticateToken, async (req, res) => {
  *       401:
  *         description: Unauthorized
  */
+// UPDATE PROFILE: Modifies user details like name or email with validation
 router.put("/me", authenticateToken, async (req, res) => {
   try {
     const { user_id } = req.user;
@@ -163,6 +171,7 @@ router.put("/me", authenticateToken, async (req, res) => {
  *       401:
  *         description: Unauthorized
  */
+// DESIGN HISTORY: Retrieves a chronological log of the user's AI-generated jewelry designs
 router.get("/my-generations", authenticateToken, async (req, res) => {
   try {
     const { user_id } = req.user;
