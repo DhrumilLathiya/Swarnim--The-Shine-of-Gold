@@ -14,14 +14,26 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Cart
+<<<<<<< dhrumil
  *   description: User-level cart management
+=======
+ *   description: Variant-based cart system
+>>>>>>> main
  */
+
+/* ==========================================================
+   1️⃣ ADD / UPDATE CART ITEM
+========================================================== */
 
 /**
  * @swagger
  * /cart:
  *   post:
+<<<<<<< dhrumil
  *     summary: Add product to cart or increase quantity
+=======
+ *     summary: Add variant to cart or increase quantity
+>>>>>>> main
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
@@ -29,6 +41,7 @@ const router = express.Router();
  *       required: true
  *       content:
  *         application/json:
+<<<<<<< dhrumil
  *           schema:
  *             type: object
  *             required:
@@ -38,6 +51,15 @@ const router = express.Router();
  *                 type: string
  *               quantity:
  *                 type: integer
+=======
+ *           example:
+ *             product_id: "PRODUCT_UUID"
+ *             variant_id: "VARIANT_UUID"
+ *             quantity: 1
+ *     responses:
+ *       200:
+ *         description: Product added/updated
+>>>>>>> main
  */
 // ADD TO CART: Inserts a new item or increments the quantity of an existing one
 router.post("/", authenticateToken, async (req, res) => {
@@ -120,6 +142,11 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 });
 
+
+/* ==========================================================
+   2️⃣ GET CART
+========================================================== */
+
 /**
  * @swagger
  * /cart:
@@ -201,8 +228,14 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
+
+/* ==========================================================
+   3️⃣ REMOVE ITEM FROM CART
+========================================================== */
+
 /**
  * @swagger
+<<<<<<< dhrumil
  * /cart/{id}:
  *   patch:
  *     summary: Update quantity of a cart item
@@ -231,9 +264,27 @@ router.patch("/:id", authenticateToken, async (req, res) => {
 /**
  * @swagger
  * /cart/{id}:
+=======
+ * /cart/{variant_id}:
+>>>>>>> main
  *   delete:
- *     summary: Remove item from cart
+ *     summary: Remove variant from cart
  *     tags: [Cart]
+<<<<<<< dhrumil
+=======
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: variant_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Item removed
+>>>>>>> main
  */
 router.delete("/:id", authenticateToken, async (req, res) => {
   try {

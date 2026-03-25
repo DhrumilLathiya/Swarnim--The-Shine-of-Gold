@@ -1,3 +1,4 @@
+<<<<<<< dhrumil
 /**
  * AI GENERATION MODEL
  * 
@@ -10,6 +11,20 @@ import { supabase } from "../config/database.js"; // Uses the administrative Sup
 const VALID_STATUS = ["pending", "processing", "completed", "failed"];
 
 // CREATE RECORD: Initializes a new entry in the generation_history table
+=======
+import { supabase } from "../config/database.js";
+
+/* ==========================================================
+   VALID STATUS
+========================================================== */
+
+const VALID_STATUS = ["pending", "processing", "completed", "failed"];
+
+/* ==========================================================
+   CREATE GENERATION
+========================================================== */
+
+>>>>>>> main
 export const createGeneration = async ({
   user_id,
   uploaded_image_url,
@@ -42,7 +57,14 @@ export const createGeneration = async ({
   return data;
 };
 
+<<<<<<< dhrumil
 // FETCH USER HISTORY: Retrieves a paginated list of generations for a specific user
+=======
+/* ==========================================================
+   GET USER GENERATIONS (Paginated)
+========================================================== */
+
+>>>>>>> main
 export const getUserGenerations = async (
   userId,
   limit = 20,
@@ -65,7 +87,14 @@ export const getUserGenerations = async (
   };
 };
 
+<<<<<<< dhrumil
 // FETCH SINGLE RECORD: Retrieves a specific generation record by its ID
+=======
+/* ==========================================================
+   GET SINGLE GENERATION
+========================================================== */
+
+>>>>>>> main
 export const getGenerationById = async (generationId) => {
   const { data, error } = await supabase
     .from("generation_history")
@@ -80,9 +109,17 @@ export const getGenerationById = async (generationId) => {
   return data || null;
 };
 
+<<<<<<< dhrumil
 // UPDATE TASK: Modifies an existing generation record (e.g., when the AI finishes processing)
 export const updateGeneration = async (generationId, updates) => {
   // Integrity Check: Only allow updates if the new status is valid
+=======
+/* ==========================================================
+   UPDATE GENERATION
+========================================================== */
+
+export const updateGeneration = async (generationId, updates) => {
+>>>>>>> main
   if (updates.status && !VALID_STATUS.includes(updates.status)) {
     throw new Error("Invalid status value");
   }
@@ -91,7 +128,11 @@ export const updateGeneration = async (generationId, updates) => {
     .from("generation_history")
     .update({
       ...updates,
+<<<<<<< dhrumil
       updated_at: new Date() // Timestamp the update
+=======
+      updated_at: new Date()
+>>>>>>> main
     })
     .eq("id", generationId)
     .select()
