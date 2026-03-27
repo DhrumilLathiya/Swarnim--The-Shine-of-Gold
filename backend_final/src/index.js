@@ -5,33 +5,31 @@ import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
-// =============================
-// Config + Middleware
-// =============================
 import { config } from "./config/index.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();
 
 // =============================
-// Middleware
+// ✅ CORS FIX (VERY IMPORTANT)
 // =============================
 app.use(cors({
-  origin: ["http://localhost:8080", "http://localhost:5173", "http://localhost:3000"],
+  origin: "*", // allow all (for now)
   credentials: true
 }));
 
+// =============================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logger for debugging
+// Logger
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
 // =============================
-// Routes
+// Routes imports
 // =============================
 import authRoutes from "./routes/auth.js";
 import jewelleryRoutes from "./routes/jewellery.js";
@@ -53,7 +51,7 @@ import couponRoutes from "./routes/coupons.js";
 import addressRoutes from "./routes/addresses.js";
 
 // =============================
-// Swagger Config
+// ✅ Swagger FIX
 // =============================
 const swaggerOptions = {
   definition: {
@@ -65,18 +63,9 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: `http://localhost:${config.port}`,
-      },
-    ],
-    components: {
-      securitySchemes: {
-        BearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT"
-        }
+        url: process.env.BASE_URL || "http://localhost:3000"
       }
-    }
+    ]
   },
   apis: ["./src/routes/*.js"]
 };
@@ -85,27 +74,20 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // =============================
-// Health Routes
+// Health
 // =============================
 app.get("/", (req, res) => {
-  res.json({ message: "Swarnim Jewellery AI Backend Running" });
+  res.json({ message: "Swarnim Backend Running" });
 });
 
 app.get("/health", (req, res) => {
-  res.json({
-    status: "ok",
-    timestamp: new Date().toISOString()
-  });
+  res.json({ status: "ok" });
 });
 
 // =============================
-// API Routes
+// Routes
 // =============================
-
-// Authentication
 app.use("/auth", authRoutes);
-
-// Core Catalogue
 app.use("/jewellery", jewelleryRoutes);
 app.use("/product-variants", productVariantRoutes);
 app.use("/product-images", productImageRoutes);
@@ -113,14 +95,12 @@ app.use("/categories", categoryRoutes);
 app.use("/rates", ratesRoutes);
 app.use("/", productRoutes);
 
-// User Operations
 app.use("/user", userRoutes);
 app.use("/wishlist", wishlistRoutes);
 app.use("/cart", cartRoutes);
 app.use("/orders", orderRoutes);
 app.use("/addresses", addressRoutes);
 
-// Admin / AI (if needed)
 app.use("/admin", adminRoutes);
 app.use("/admin/coupons", couponRoutes);
 app.use("/ai", aiRoutes);
@@ -128,12 +108,11 @@ app.use("/notifications", notificationRoutes);
 app.use("/reviews", reviewsRoutes);
 app.use("/coupons", couponRoutes);
 
-// Uploads
 app.use("/upload", uploadRoutes);
 app.use("/uploads", express.static("uploads"));
 
 // =============================
-// Error Handling (LAST)
+// Errors
 // =============================
 app.use(notFoundHandler);
 app.use(errorHandler);
@@ -141,10 +120,10 @@ app.use(errorHandler);
 // =============================
 // Start Server
 // =============================
-const PORT = config.port || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
 
 export default app;
