@@ -36,15 +36,15 @@ const Footer = () => {
             <div className="space-y-3 text-base">
               <div className="flex items-center gap-3 text-ivory/60">
                 <MapPin className="h-5 w-5 text-gold" />
-                <span>Mumbai, Maharashtra, India</span>
+                <span>Nadiad, Gujarat, India</span>
               </div>
               <div className="flex items-center gap-3 text-ivory/60">
                 <Phone className="h-5 w-5 text-gold" />
-                <span>+91 22 1234 5678</span>
+                <span>+91 81607 12150</span>
               </div>
               <div className="flex items-center gap-3 text-ivory/60">
                 <Mail className="h-5 w-5 text-gold" />
-                <span>hello@swarnim.com</span>
+                <span>swarnim.jewelry19@gmail.com</span>
               </div>
             </div>
           </div>
@@ -90,7 +90,7 @@ const Footer = () => {
         </div>
 
         <div className="mt-16 pt-8 border-t border-ivory/10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-base text-ivory/40">© 2024 Swarnim. All rights reserved.</p>
+          <p className="text-base text-ivory/40">© 2026 Swarnim. All rights reserved.</p>
           <div className="flex items-center gap-4">
             {[
               { Icon: Facebook, href: "https://facebook.com" },

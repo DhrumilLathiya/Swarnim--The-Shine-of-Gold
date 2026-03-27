@@ -18,6 +18,44 @@ export const filterCategories = {
       { id: "diamond", label: "Diamond" },
     ],
   },
+
+  earrings: {
+    title: "Earrings",
+    description: "Stunning earrings collection",
+    filters: [
+      { id: "all", label: "All" },
+      { id: "gold", label: "Gold" },
+      { id: "diamond", label: "Diamond" },
+    ],
+  },
+
+  bangles: {
+    title: "Bangles",
+    description: "Traditional bangles collection",
+    filters: [
+      { id: "all", label: "All" },
+      { id: "gold", label: "Gold" },
+      { id: "diamond", label: "Diamond" },
+    ],
+  },
+
+  bracelets: {
+    title: "Bracelets",
+    description: "Elegant bracelets collection",
+    filters: [
+      { id: "all", label: "All" },
+      { id: "gold", label: "Gold" },
+      { id: "diamond", label: "Diamond" },
+    ],
+  },
+
+  collections: {
+    title: "All Collections",
+    description: "Explore our complete catalogue",
+    filters: [
+      { id: "all", label: "All" },
+    ],
+  },
 };
 
 export const filterProductsByTag = (products: any[], filter: string) => {

@@ -20,56 +20,73 @@ import StoryPage from "./pages/StoryPage";
 import CareersPage from "./pages/CareersPage";
 import NotFound from "./pages/NotFound";
 import RegisterPage from "./pages/RegisterPage";
+import OTPVerificationPage from "./pages/OTPVerificationPage";
+import ScratchCardPage from "./pages/ScratchCardPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import OrderSuccessPage from "./pages/OrderSuccessPage";
+import OrderHistoryPage from "./pages/OrderHistoryPage";
+import AddressesPage from "./pages/AddressesPage";
+
+import { WishlistProvider } from "./context/WishlistContext";
+import { CartProvider } from "./context/CartContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
+    <WishlistProvider>
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
 
-          {/* Category Routes */}
-          <Route path="/rings" element={<CategoryPage />} />
-          <Route path="/earrings" element={<CategoryPage />} />
-          <Route path="/necklaces" element={<CategoryPage />} />
-          <Route path="/bangles" element={<CategoryPage />} />
-          <Route path="/collections" element={<CategoryPage />} />
+              {/* Category Routes */}
+              <Route path="/rings" element={<CategoryPage />} />
+              <Route path="/earrings" element={<CategoryPage />} />
+              <Route path="/necklaces" element={<CategoryPage />} />
+              <Route path="/bangles" element={<CategoryPage />} />
+              <Route path="/collections" element={<CategoryPage />} />
 
-          {/* Product Detail */}
-          <Route path="/product/:id" element={<ProductPage />} />
-          <Route path="/product/:id/modify" element={<ModifyJewelryPage />} />
+              {/* Product Detail */}
+              <Route path="/product/:id" element={<ProductPage />} />
+              <Route path="/product/:id/modify" element={<ModifyJewelryPage />} />
 
-          {/* Utility Pages */}
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/wishlist" element={<WishlistPage />} />
-          <Route path="/account" element={<AccountPage />} />
+              {/* Utility Pages */}
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
+              <Route path="/account" element={<AccountPage />} />
+              <Route path="/scratch-card" element={<ScratchCardPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/order-success" element={<OrderSuccessPage />} />
+              <Route path="/orders" element={<OrderHistoryPage />} />
+              <Route path="/addresses" element={<AddressesPage />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+              {/* Admin Routes */}
+              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
 
+              {/* Info Pages */}
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/faqs" element={<FAQPage />} />
+              <Route path="/shipping" element={<ShippingPage />} />
+              <Route path="/story" element={<StoryPage />} />
+              <Route path="/careers" element={<CareersPage />} />
 
+              {/* User Auth */}
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/verify-otp" element={<OTPVerificationPage />} />
 
-          {/* Info Pages */}
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/faqs" element={<FAQPage />} />
-          <Route path="/shipping" element={<ShippingPage />} />
-          <Route path="/story" element={<StoryPage />} />
-          <Route path="/careers" element={<CareersPage />} />
-
-          {/* User Auth */}
-          <Route path="/register" element={<RegisterPage />} />
-
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </CartProvider>
+    </WishlistProvider>
   </QueryClientProvider>
 );
 
