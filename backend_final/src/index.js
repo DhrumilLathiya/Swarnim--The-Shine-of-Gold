@@ -11,15 +11,27 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 const app = express();
 
 // =============================
-// ✅ CORS FIX (VERY IMPORTANT)
+// ✅ FINAL CORS FIX (CRITICAL)
 // =============================
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://swarnim-frontend.s3-website-ap-southeast-2.amazonaws.com"
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://swarnim-frontend.s3-website-ap-southeast-2.amazonaws.com"
-  ],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("❌ CORS blocked:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
+
+// 🔥 Handle preflight requests
+app.options("*", cors());
 
 // =============================
 app.use(express.json());
@@ -54,7 +66,7 @@ import couponRoutes from "./routes/coupons.js";
 import addressRoutes from "./routes/addresses.js";
 
 // =============================
-// ✅ Swagger FIX
+// Swagger
 // =============================
 const swaggerOptions = {
   definition: {
@@ -77,7 +89,7 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // =============================
-// Health
+// Health Routes
 // =============================
 app.get("/", (req, res) => {
   res.json({ message: "Swarnim Backend Running" });
@@ -115,7 +127,7 @@ app.use("/upload", uploadRoutes);
 app.use("/uploads", express.static("uploads"));
 
 // =============================
-// Errors
+// Error Handling
 // =============================
 app.use(notFoundHandler);
 app.use(errorHandler);
