@@ -14,7 +14,10 @@ const app = express();
 // ✅ CORS FIX (VERY IMPORTANT)
 // =============================
 app.use(cors({
-  origin: "*", // allow all (for now)
+  origin: [
+    "http://localhost:5173",
+    "https://swarnim-frontend.s3-website-ap-southeast-2.amazonaws.com"
+  ],
   credentials: true
 }));
 
