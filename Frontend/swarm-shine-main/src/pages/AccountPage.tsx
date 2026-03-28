@@ -29,7 +29,7 @@ const AccountPage = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/auth/login",
+        "https://swarnim-the-shine-of-gold.onrender.com/auth/login",
         {
           email,
           password,

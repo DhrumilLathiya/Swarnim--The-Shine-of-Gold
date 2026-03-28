@@ -30,7 +30,7 @@ const ScratchCardPage = () => {
 
         const fetchAllActiveCoupons = async () => {
             try {
-                const res = await axios.get("http://localhost:3000/coupons/all-active");
+                const res = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/coupons/all-active");
                 // Shuffle coupons to randomize positions
                 const shuffled = [...res.data].sort(() => Math.random() - 0.5);
                 setCoupons(shuffled);

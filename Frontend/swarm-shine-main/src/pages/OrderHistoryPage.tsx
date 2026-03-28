@@ -62,7 +62,7 @@ const OrderHistoryPage = () => {
     const fetchOrders = async () => {
         if (!token) { setIsLoading(false); return; }
         try {
-            const res = await axios.get("http://localhost:3000/orders", {
+            const res = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/orders", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setOrders(res.data.data || []);
@@ -77,7 +77,7 @@ const OrderHistoryPage = () => {
     const handleCancel = async (orderId: string) => {
         setCancellingId(orderId);
         try {
-            await axios.post(`http://localhost:3000/orders/${orderId}/cancel`, {}, {
+            await axios.post(`https://swarnim-the-shine-of-gold.onrender.com/orders/${orderId}/cancel`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast({ title: "Order Cancelled", description: "Your order has been cancelled." });
@@ -99,7 +99,7 @@ const OrderHistoryPage = () => {
 
     const getFullImageUrl = (url: string) => {
         if (!url) return "";
-        return url.startsWith("http") ? url : `http://localhost:3000${url}`;
+        return url.startsWith("http") ? url : `https://swarnim-the-shine-of-gold.onrender.com${url}`;
     };
 
     const formatDate = (dateStr: string) => {
