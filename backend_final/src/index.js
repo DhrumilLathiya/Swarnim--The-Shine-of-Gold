@@ -15,7 +15,7 @@ const app = express();
 // =============================
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://swarnim-frontend.s3-website-ap-southeast-2.amazonaws.com"
+  "https://db0dhxt6a9543.cloudfront.net"
 ];
 
 app.use(cors({
