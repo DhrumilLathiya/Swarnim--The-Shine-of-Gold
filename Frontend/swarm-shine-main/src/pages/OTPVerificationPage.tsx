@@ -41,7 +41,7 @@ const OTPVerificationPage = () => {
         setIsLoading(true);
 
         try {
-            const res = await axios.post("https://swarnim-the-shine-of-gold.onrender.com/auth/verify-otp", {
+            const res = await axios.post("http://localhost:3000/auth/verify-otp", {
                 email,
                 otp,
             });

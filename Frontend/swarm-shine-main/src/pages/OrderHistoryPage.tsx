@@ -62,7 +62,7 @@ const OrderHistoryPage = () => {
     const fetchOrders = async () => {
         if (!token) { setIsLoading(false); return; }
         try {
-            const res = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/orders", {
+            const res = await axios.get("http://localhost:3000/orders", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setOrders(res.data.data || []);
@@ -77,7 +77,7 @@ const OrderHistoryPage = () => {
     const handleCancel = async (orderId: string) => {
         setCancellingId(orderId);
         try {
-            await axios.post(`https://swarnim-the-shine-of-gold.onrender.com/orders/${orderId}/cancel`, {}, {
+            await axios.post(`http://localhost:3000/orders/${orderId}/cancel`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast({ title: "Order Cancelled", description: "Your order has been cancelled." });
@@ -99,7 +99,7 @@ const OrderHistoryPage = () => {
 
     const getFullImageUrl = (url: string) => {
         if (!url) return "";
-        return url.startsWith("http") ? url : `https://swarnim-the-shine-of-gold.onrender.com${url}`;
+        return url.startsWith("http") ? url : `http://localhost:3000${url}`;
     };
 
     const formatDate = (dateStr: string) => {
@@ -151,22 +151,24 @@ const OrderHistoryPage = () => {
                                             className="p-5 cursor-pointer hover:bg-muted/30 transition-colors"
                                             onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-2.5 bg-muted rounded-xl">
-                                                        <Package className="h-5 w-5 text-muted-foreground" />
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                <div className="flex items-center gap-3 sm:gap-4">
+                                                    <div className="p-2 sm:p-2.5 bg-muted rounded-xl">
+                                                        <Package className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-semibold">Order #{order.id.slice(-8).toUpperCase()}</p>
-                                                        <p className="text-xs text-muted-foreground">{formatDate(order.created_at)} · {order.items.length} item(s)</p>
+                                                        <p className="font-semibold text-sm sm:text-base">Order #{order.id.slice(-8).toUpperCase()}</p>
+                                                        <p className="text-[10px] sm:text-xs text-muted-foreground">{formatDate(order.created_at)} · {order.items.length} item(s)</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4">
-                                                    <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${statusColors[order.status] || "bg-gray-100 text-gray-700"}`}>
+                                                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                                                    <span className={`px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold rounded-full uppercase ${statusColors[order.status] || "bg-gray-100 text-gray-700"}`}>
                                                         {order.status}
                                                     </span>
-                                                    <p className="font-bold text-lg">{formatPrice(order.final_amount)}</p>
-                                                    {expandedId === order.id ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                                                    <div className="flex items-center gap-3">
+                                                        <p className="font-bold text-base sm:text-lg">{formatPrice(order.final_amount)}</p>
+                                                        {expandedId === order.id ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

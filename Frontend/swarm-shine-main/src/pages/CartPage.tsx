@@ -19,7 +19,7 @@ const CartPage = () => {
   const { data: rateData } = useQuery({
     queryKey: ["gold-rate"],
     queryFn: async () => {
-      const res = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/rates/metal/gold");
+      const res = await axios.get("http://localhost:3000/rates/metal/gold");
       return res.data;
     },
     staleTime: 5 * 60 * 1000, // cache 5 minutes
@@ -49,7 +49,7 @@ const CartPage = () => {
     if (!couponCode) return;
     console.log('Sending Coupon Verification:', { code: couponCode, cartTotal: cartTotal });
     try {
-      const res = await axios.post("https://swarnim-the-shine-of-gold.onrender.com/coupons/verify", {
+      const res = await axios.post("http://localhost:3000/coupons/verify", {
         code: couponCode,
         cartTotal: cartTotal
       });
@@ -105,7 +105,7 @@ const CartPage = () => {
 
   const getFullImageUrl = (url: string) => {
     if (!url) return "";
-    return url.startsWith("http") ? url : `https://swarnim-the-shine-of-gold.onrender.com/${url}`;
+    return url.startsWith("http") ? url : `http://localhost:3000${url}`;
   };
 
   if (isLoading) {
@@ -219,7 +219,7 @@ const CartPage = () => {
 
                 {/* Summary Sidebar */}
                 <div className="lg:col-span-1">
-                  <div className="sticky top-40 bg-card rounded-3xl border border-border p-8 space-y-6 shadow-sm">
+                  <div className="lg:sticky lg:top-40 bg-card rounded-2xl sm:rounded-3xl border border-border p-6 sm:p-8 space-y-6 shadow-sm">
                     <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
 
                     <div className="space-y-4 text-muted-foreground pt-4">

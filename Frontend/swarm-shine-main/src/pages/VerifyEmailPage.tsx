@@ -23,7 +23,7 @@ const VerifyEmailPage = () => {
             }
 
             try {
-                const response = await axios.get(`https://swarnim-the-shine-of-gold.onrender.com/auth/verify-email?token=${token}`);
+                const response = await axios.get(`http://localhost:3000/auth/verify-email?token=${token}`);
                 setStatus("success");
                 setMessage(response.data.message || "Your email has been successfully verified!");
             } catch (error: any) {

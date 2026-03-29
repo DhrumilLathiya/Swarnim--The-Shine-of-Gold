@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import productRing from "@/assets/product-ring.jpg";
 
 // ─── Stone images ────────────────────────────────────────────────────────────
@@ -458,10 +459,20 @@ const SegmentPopup = ({ pred, screenX, screenY, onClose, onSelect }: SegmentPopu
     const [pendingOption, setPendingOption] = useState<SwapOption | null>(null);
     const [userInput, setUserInput] = useState("");
 
-    // Adjust position so popup stays on screen
+    // Adjust position so popup stays on screen or centers on mobile
     const [pos, setPos] = useState({ x: screenX, y: screenY });
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     useEffect(() => {
         if (!popupRef.current) return;
+        if (isMobile) return; // Logic for centering handled via CSS
+
         const pw = popupRef.current.offsetWidth;
         const ph = popupRef.current.offsetHeight;
         const vw = window.innerWidth;
@@ -470,7 +481,7 @@ const SegmentPopup = ({ pred, screenX, screenY, onClose, onSelect }: SegmentPopu
             x: Math.min(screenX + 12, vw - pw - 12),
             y: Math.min(screenY + 12, vh - ph - 12),
         });
-    }, [screenX, screenY, pendingOption]);
+    }, [screenX, screenY, pendingOption, isMobile]);
 
     // Close on outside click
     useEffect(() => {
@@ -502,12 +513,17 @@ const SegmentPopup = ({ pred, screenX, screenY, onClose, onSelect }: SegmentPopu
     return (
         <motion.div
             ref={popupRef}
-            initial={{ opacity: 0, scale: 0.9, y: -8 }}
+            initial={{ opacity: 0, scale: 0.9, y: isMobile ? 30 : -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -8 }}
+            exit={{ opacity: 0, scale: 0.9, y: isMobile ? 30 : -8 }}
             transition={{ duration: 0.18 }}
-            className="fixed z-[9999] bg-card/95 backdrop-blur-xl border border-border rounded-3xl shadow-2xl p-5 min-w-[240px]"
-            style={{ left: pos.x, top: pos.y }}
+            className={cn(
+                "fixed z-[9999] bg-card/95 backdrop-blur-xl border border-border rounded-3xl shadow-2xl p-5 min-w-[280px]",
+                isMobile
+                    ? "bottom-10 left-1/2 -translate-x-1/2 w-[90%] max-w-[340px]"
+                    : ""
+            )}
+            style={isMobile ? {} : { left: pos.x, top: pos.y }}
         >
             {/* Header */}
             <div className="flex items-center justify-between mb-4 gap-3">
@@ -796,13 +812,11 @@ const ModifyJewelryPage = () => {
                     </Link>
 
                     <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-16">
-                        {/* Header */}
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-border pb-10">
                             <div>
-                                <h1 className="font-display text-4xl md:text-6xl font-bold tracking-tight mb-4 tracking-tighter">Jewelry Atelier</h1>
-                                <p className="text-xl text-muted-foreground max-w-2xl font-display">Modify Your Jewelry With Your Own Way</p>
+                                <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 tracking-tighter">Jewelry Atelier</h1>
+                                <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl font-display">Modify Your Jewelry With Your Own Way</p>
                             </div>
-
                         </div>
 
                         {/* Two-column layout */}
@@ -820,24 +834,24 @@ const ModifyJewelryPage = () => {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <div className="absolute top-8 left-8 z-20 flex flex-col gap-3 pointer-events-none">
-                                                        <div className="bg-black/60 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-2xl shadow-2xl">
-                                                            <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Original Vision</span>
+                                                    <div className="absolute top-4 left-4 sm:top-8 sm:left-8 z-20 flex flex-col gap-2 sm:gap-3 pointer-events-none">
+                                                        <div className="bg-black/60 backdrop-blur-xl border border-white/10 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl shadow-2xl">
+                                                            <span className="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-[0.2em] sm:tracking-[0.3em]">Original Vision</span>
                                                         </div>
                                                         {isSegmenting && (
-                                                            <div className="flex items-center gap-3 bg-accent text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-2xl shadow-xl animate-bounce">
-                                                                <Sparkles className="h-3.5 w-3.5" />
+                                                            <div className="flex items-center gap-2 sm:gap-3 bg-accent text-white text-[8px] sm:text-[10px] font-black uppercase tracking-widest px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl animate-bounce">
+                                                                <Sparkles className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
                                                                 AI Analyzing...
                                                             </div>
                                                         )}
                                                         {/* Mode badge */}
                                                         {!isSegmenting && predictions.length > 0 && (
-                                                            <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border text-[10px] font-black uppercase tracking-widest shadow-lg ${mode === "done"
+                                                            <div className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl border text-[8px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg ${mode === "done"
                                                                 ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
                                                                 : "bg-accent/20 border-accent/40 text-accent"
                                                                 }`}>
-                                                                {mode === "done" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
-                                                                {mode === "done" ? "Click a part to change it" : "Brush mode — paint freely"}
+                                                                {mode === "done" ? <CheckCircle2 className="h-3 sm:h-3.5 w-3 sm:w-3.5" /> : <Pencil className="h-3 sm:h-3.5 w-3 sm:w-3.5" />}
+                                                                {mode === "done" ? "Click to change" : "Paint freely"}
                                                             </div>
                                                         )}
                                                     </div>
@@ -856,10 +870,10 @@ const ModifyJewelryPage = () => {
                                                 </>
                                             )}
                                         </div>
-                                        <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-between pointer-events-none">
+                                        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-8 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-between pointer-events-none">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Active Capture: S-01</span>
+                                                <div className="w-1.5 h-1.5 sm:w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                                <span className="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-widest">Capture: S-01</span>
                                             </div>
                                         </div>
                                     </div>
@@ -892,36 +906,36 @@ const ModifyJewelryPage = () => {
                                                 size="sm"
                                                 id="manual-lab-done-btn"
                                                 onClick={handleDoneClick}
-                                                className={`rounded-xl gap-2 px-4 h-10 transition-all active:scale-95 ${mode === "done"
+                                                className={`rounded-xl gap-2 px-3 sm:px-4 h-10 transition-all active:scale-95 ${mode === "done"
                                                     ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 border-none"
                                                     : "bg-card/60 border-border"
                                                     }`}
                                             >
-                                                <CheckCircle2 className="h-4 w-4" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-[10px]">Done</span>
+                                                <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Done</span>
                                             </Button>
                                             <Button
                                                 variant={mode === "edit" ? "default" : "outline"}
                                                 size="sm"
                                                 id="manual-lab-edit-btn"
                                                 onClick={handleEditClick}
-                                                className={`rounded-xl gap-2 px-4 h-10 transition-all active:scale-95 ${mode === "edit"
+                                                className={`rounded-xl gap-2 px-3 sm:px-4 h-10 transition-all active:scale-95 ${mode === "edit"
                                                     ? "bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/30 border-none"
                                                     : "bg-card/60 border-border"
                                                     }`}
                                             >
-                                                <Pencil className="h-4 w-4" />
-                                                <span className="text-[11px] font-black uppercase tracking-widest text-[10px]">Edit</span>
+                                                <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Edit</span>
                                             </Button>
 
                                             <Button
                                                 variant="secondary"
                                                 size="sm"
                                                 onClick={handleGeneratePrompt}
-                                                className="rounded-xl gap-2 px-4 h-10 bg-gradient-to-r from-accent/20 to-transparent border-accent/20 hover:border-accent/40 text-accent transition-all active:scale-95 group shadow-md"
+                                                className="rounded-xl gap-2 px-3 sm:px-4 h-10 bg-gradient-to-r from-accent/20 to-transparent border-accent/20 hover:border-accent/40 text-accent transition-all active:scale-95 group shadow-md"
                                             >
-                                                <Sparkles className="h-4 w-4" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Generate</span>
+                                                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                                <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Generate</span>
                                             </Button>
                                         </div>
                                     </div>
@@ -988,13 +1002,13 @@ const ModifyJewelryPage = () => {
                                                                 Size Settings
                                                                 <span className="flex-1 h-px bg-border/30" />
                                                             </p>
-                                                            <div className="bg-secondary/10 p-4 rounded-2xl border border-white/5 flex items-center gap-6">
-                                                                <div className="w-12 h-12 rounded-xl border border-border bg-card/60 flex items-center justify-center flex-none">
+                                                            <div className="bg-secondary/10 p-4 rounded-2xl border border-white/5 flex items-center gap-4 sm:gap-6">
+                                                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-border bg-card/60 flex items-center justify-center flex-none">
                                                                     <div
                                                                         className="rounded-full opacity-60"
                                                                         style={{
-                                                                            width: `${Math.max(4, Math.min(brushSize[0], 36))}px`,
-                                                                            height: `${Math.max(4, Math.min(brushSize[0], 36))}px`,
+                                                                            width: `${Math.max(4, Math.min(brushSize[0], 28))}px`,
+                                                                            height: `${Math.max(4, Math.min(brushSize[0], 28))}px`,
                                                                             backgroundColor: activeBrush === "eraser" ? "white" : (activeBrush ? getRoboflowColor(activeBrush, 0).stroke : "rgba(255,255,255,0.1)"),
                                                                         }}
                                                                     />
@@ -1182,7 +1196,7 @@ const ModifyJewelryPage = () => {
                                         <Button
                                             variant="gold"
                                             size="lg"
-                                            className="text-lg w-full py-7 h-auto rounded-[2rem] shadow-xl hover:shadow-gold/40 transition-all group overflow-hidden relative"
+                                            className="text-base sm:text-lg w-full py-5 sm:py-7 h-auto rounded-2xl sm:rounded-[2rem] shadow-xl hover:shadow-gold/40 transition-all group overflow-hidden relative"
                                             onClick={handleGenerateDesign}
                                             disabled={isGenerating || !visionaryPrompt.trim()}
                                         >

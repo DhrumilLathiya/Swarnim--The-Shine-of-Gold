@@ -78,7 +78,7 @@ const AdminDashboardPage = () => {
   const fetchCoupons = async () => {
     setIsFetchingCoupons(true);
     try {
-      const res = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/admin/coupons/admin/list");
+      const res = await axios.get("http://localhost:3000/admin/coupons/admin/list");
       setCoupons(res.data);
     } catch (error) {
       console.error("Error fetching coupons:", error);
@@ -96,7 +96,7 @@ const AdminDashboardPage = () => {
   const handleCreateCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("https://swarnim-the-shine-of-gold.onrender.com/admin/coupons/admin/create", newCoupon);
+      await axios.post("http://localhost:3000/admin/coupons/admin/create", newCoupon);
       toast({ title: "Coupon Created", description: "Your new coupon is live." });
       setIsAddingCoupon(false);
       setNewCoupon({ code: "", discount_percent: "", expiry_date: "", is_active: true, min_order_amount: "" });
@@ -112,7 +112,7 @@ const AdminDashboardPage = () => {
 
   const handleDeleteCoupon = async (id: string) => {
     try {
-      await axios.delete(`https://swarnim-the-shine-of-gold.onrender.com/admin/coupons/admin/delete/${id}`);
+      await axios.delete(`http://localhost:3000/admin/coupons/admin/delete/${id}`);
       toast({ title: "Coupon Deleted" });
       fetchCoupons();
     } catch (error) {
@@ -122,7 +122,7 @@ const AdminDashboardPage = () => {
 
   const handleToggleCoupon = async (coupon: any) => {
     try {
-      await axios.put(`https://swarnim-the-shine-of-gold.onrender.com/admin/coupons/admin/update/${coupon.id}`, {
+      await axios.put(`http://localhost:3000/admin/coupons/admin/update/${coupon.id}`, {
         ...coupon,
         is_active: !coupon.is_active
       });
@@ -156,7 +156,7 @@ const AdminDashboardPage = () => {
       if (metalType.toLowerCase() === "gold" && purity) {
         setIsFetchingRate(true);
         try {
-          const res = await axios.get(`https://swarnim-the-shine-of-gold.onrender.com/rates/metal/gold?purity=${purity}`);
+          const res = await axios.get(`http://localhost:3000/rates/metal/gold?purity=${purity}`);
           setLiveGoldRate(res.data.price_per_gram);
           setMetalPrice(res.data.price_per_gram); // Keep for backend compat if needed
         } catch (error) {
@@ -348,7 +348,7 @@ const AdminDashboardPage = () => {
         productData.diamond_quality = "VVS1";
 
         await axios.post(
-          "https://swarnim-the-shine-of-gold.onrender.com/admin/jewellery",
+          "http://localhost:3000/admin/jewellery",
           productData,
           {
             headers: {

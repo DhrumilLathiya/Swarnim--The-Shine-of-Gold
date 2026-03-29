@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 
-const API_BASE = "https://swarnim-the-shine-of-gold.onrender.com";
+const API_BASE = "http://localhost:3000";
 
 const getToken = () => localStorage.getItem("token");
 const getUserId = () => {

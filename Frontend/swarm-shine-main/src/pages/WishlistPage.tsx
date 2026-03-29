@@ -36,7 +36,7 @@ const WishlistPage = () => {
 
   const getFullImageUrl = (url: string) => {
     if (!url) return "";
-    return url.startsWith("http") ? url : `https://swarnim-the-shine-of-gold.onrender.com${url}`;
+    return url.startsWith("http") ? url : `http://localhost:3000${url}`;
   };
 
   return (
@@ -80,7 +80,7 @@ const WishlistPage = () => {
               </Button>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8">
               <AnimatePresence mode="popLayout">
                 {wishlist.map((item) => (
                   <motion.div
@@ -121,18 +121,18 @@ const WishlistPage = () => {
                         </p>
                       </div>
 
-                      <div className="flex gap-2">
-                        <Button className="flex-1" variant="outline" asChild>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button className="flex-1 h-9 sm:h-10 text-xs sm:text-sm" variant="outline" asChild>
                           <Link to={`/product/${item.jewellery_products.id}`}>
-                            View Details
+                            Details
                           </Link>
                         </Button>
-                        <Button 
-                          className="flex-1 gap-2" 
+                        <Button
+                          className="flex-1 gap-2 h-9 sm:h-10 text-xs sm:text-sm"
                           variant="gold"
                           onClick={() => handleMoveToBag(item.jewellery_products.id)}
                         >
-                          <ShoppingBag className="h-4 w-4" />
+                          <ShoppingBag className="h-3.5 w-3.5" />
                           To Bag
                         </Button>
                       </div>

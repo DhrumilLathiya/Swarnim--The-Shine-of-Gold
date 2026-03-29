@@ -40,7 +40,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         setIsLoading(true);
         try {
-            const response = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/wishlist", {
+            const response = await axios.get("http://localhost:3000/wishlist", {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setWishlist(response.data);
@@ -68,7 +68,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         try {
             await axios.post(
-                "https://swarnim-the-shine-of-gold.onrender.com/wishlist",
+                "http://localhost:3000/wishlist",
                 { product_id: productId },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -91,7 +91,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (!token) return;
 
         try {
-            await axios.delete(`https://swarnim-the-shine-of-gold.onrender.com/wishlist/${productId}`, {
+            await axios.delete(`http://localhost:3000/wishlist/${productId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             await fetchWishlist();

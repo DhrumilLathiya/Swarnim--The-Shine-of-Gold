@@ -28,7 +28,7 @@ const RegisterPage = () => {
 
         try {
             const res = await axios.post(
-                "https://swarnim-the-shine-of-gold.onrender.com/auth/register",
+                "http://localhost:3000/auth/register",
                 {
                     name,
                     email,

@@ -27,6 +27,7 @@ const Navbar = () => {
   const { cartCount } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [showWishlistPreview, setShowWishlistPreview] = useState(false);
   const [userName, setUserName] = useState<string | null>(localStorage.getItem("userName"));
 
@@ -56,7 +57,7 @@ const Navbar = () => {
 
   const getFullImageUrl = (url: string) => {
     if (!url) return "";
-    return url.startsWith("http") ? url : `https://swarnim-the-shine-of-gold.onrender.com${url}`;
+    return url.startsWith("http") ? url : `http://localhost:3000${url}`;
   };
 
   const navLinks: NavCategory[] = [
@@ -433,43 +434,95 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden bg-background border-t border-border overflow-hidden"
           >
-            <div className="container mx-auto px-6 py-6 space-y-4">
-              {navLinks.map((link) => (
-                <div key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="block text-base font-medium text-foreground py-2"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {link.name}
-                  </Link>
+            <div className="container mx-auto px-6 py-8">
+              <div className="flex flex-col space-y-2">
+                {navLinks.map((link) => (
+                  <div key={link.name} className="border-b border-border/50 last:border-0">
+                    <div className="flex items-center justify-between py-4">
+                      <Link
+                        to={link.href}
+                        className="text-lg font-medium text-foreground"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {link.name}
+                      </Link>
+                      {link.subcategories && (
+                        <button
+                          onClick={() => setMobileExpanded(mobileExpanded === link.name ? null : link.name)}
+                          className="p-2 -mr-2 text-muted-foreground"
+                        >
+                          <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${mobileExpanded === link.name ? "rotate-180" : ""}`} />
+                        </button>
+                      )}
+                    </div>
+
+                    <AnimatePresence>
+                      {link.subcategories && mobileExpanded === link.name && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden pb-4 pl-4"
+                        >
+                          <div className="grid grid-cols-1 gap-6">
+                            {Object.entries(link.subcategories).map(([key, items]: [string, any]) => (
+                              <div key={key}>
+                                <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-3">
+                                  {key === "byMetal" ? "By Metal & Stone" : key.replace(/([A-Z])/g, ' $1')}
+                                </h4>
+                                <ul className="space-y-3">
+                                  {items.map((item: any) => (
+                                    <li key={item.name}>
+                                      <Link
+                                        to={item.href}
+                                        className="text-sm text-muted-foreground hover:text-foreground transition-colors block"
+                                        onClick={() => setIsOpen(false)}
+                                      >
+                                        {item.name}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mobile Profile & Utility - Improved Grid */}
+              <div className="mt-8 pt-8 border-t border-border">
+                <div className="grid grid-cols-2 gap-4">
+                  <Button variant="outline" className="h-12 justify-start px-4 rounded-xl" asChild>
+                    <Link to="/search" onClick={() => setIsOpen(false)}>
+                      <Search className="h-4 w-4 mr-3 text-accent" />
+                      <span className="text-sm font-medium">Search</span>
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="h-12 justify-start px-4 rounded-xl" asChild>
+                    <Link to="/orders" onClick={() => setIsOpen(false)}>
+                      <Package className="h-4 w-4 mr-3 text-accent" />
+                      <span className="text-sm font-medium">Orders</span>
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="h-12 justify-start px-4 rounded-xl" asChild>
+                    <Link to="/account" onClick={() => setIsOpen(false)}>
+                      <User className="h-4 w-4 mr-3 text-accent" />
+                      <span className="text-sm font-medium truncate">
+                        {userName ? `Hi, ${userName.split(' ')[0]}` : "Account"}
+                      </span>
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="h-12 justify-start px-4 rounded-xl" asChild>
+                    <Link to="/wishlist" onClick={() => setIsOpen(false)}>
+                      <Heart className="h-4 w-4 mr-3 text-accent" />
+                      <span className="text-sm font-medium">Wishlist</span>
+                    </Link>
+                  </Button>
                 </div>
-              ))}
-              <div className="flex items-center space-x-4 pt-4 border-t border-border">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/search" onClick={() => setIsOpen(false)}>
-                    <Search className="h-4 w-4 mr-2" />
-                    Search
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/account" onClick={() => setIsOpen(false)}>
-                    <User className="h-4 w-4 mr-2" />
-                    {userName ? `Hi, ${userName.split(' ')[0]}` : "Account"}
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/orders" onClick={() => setIsOpen(false)}>
-                    <Package className="h-4 w-4 mr-2" />
-                    Orders
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/wishlist" onClick={() => setIsOpen(false)}>
-                    <Heart className="h-4 w-4 mr-2" />
-                    Wishlist ({wishlist.length})
-                  </Link>
-                </Button>
               </div>
             </div>
           </motion.div>

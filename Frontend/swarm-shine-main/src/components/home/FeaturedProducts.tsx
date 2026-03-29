@@ -148,7 +148,7 @@ const FeaturedProducts = () => {
 
                       <div className={cn(
                         "absolute top-4 right-4 flex flex-col gap-2 transition-all duration-300",
-                        active ? "opacity-100" : "opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+                        active ? "opacity-100" : "opacity-100 sm:opacity-0 sm:translate-x-2 sm:group-hover:opacity-100 sm:group-hover:translate-x-0"
                       )}>
                         <button
                           onClick={(e) => toggleWishlist(e, product.id)}
@@ -161,13 +161,13 @@ const FeaturedProducts = () => {
                         </button>
                       </div>
 
-                      <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full transition-transform duration-300 group-hover:translate-y-0">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full transition-transform duration-300 group-hover:translate-y-0 md:translate-y-0 md:static md:p-0 md:mt-4">
                         <Button
-                          className="w-full gap-2"
+                          className="w-full gap-2 rounded-xl h-11"
                           size="default"
                           onClick={(e) => handleAddToCart(e, product.id)}
                         >
-                          <ShoppingBag className="h-5 w-5" />
+                          <ShoppingBag className="h-4 w-4" />
                           Add to Bag
                         </Button>
                       </div>
