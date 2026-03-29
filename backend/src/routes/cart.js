@@ -14,26 +14,18 @@ const router = express.Router();
  * @swagger
  * tags:
  *   name: Cart
-<<<<<<< dhrumil
  *   description: User-level cart management
-=======
- *   description: Variant-based cart system
->>>>>>> main
  */
 
 /* ==========================================================
    1️⃣ ADD / UPDATE CART ITEM
-========================================================== */
+ ========================================================== */
 
 /**
  * @swagger
  * /cart:
  *   post:
-<<<<<<< dhrumil
  *     summary: Add product to cart or increase quantity
-=======
- *     summary: Add variant to cart or increase quantity
->>>>>>> main
  *     tags: [Cart]
  *     security:
  *       - BearerAuth: []
@@ -41,7 +33,6 @@ const router = express.Router();
  *       required: true
  *       content:
  *         application/json:
-<<<<<<< dhrumil
  *           schema:
  *             type: object
  *             required:
@@ -51,15 +42,6 @@ const router = express.Router();
  *                 type: string
  *               quantity:
  *                 type: integer
-=======
- *           example:
- *             product_id: "PRODUCT_UUID"
- *             variant_id: "VARIANT_UUID"
- *             quantity: 1
- *     responses:
- *       200:
- *         description: Product added/updated
->>>>>>> main
  */
 // ADD TO CART: Inserts a new item or increments the quantity of an existing one
 router.post("/", authenticateToken, async (req, res) => {
@@ -103,7 +85,7 @@ router.post("/", authenticateToken, async (req, res) => {
     if (existingItem) {
       // INCREMENT: Update quantity if it doesn't exceed available stock
       const newQty = existingItem.quantity + quantity;
-      
+
       if (newQty > (primaryVariant.stock_quantity || 999)) {
         return res.status(400).json({ error: "Requested quantity exceeds available stock" });
       }
@@ -235,48 +217,42 @@ router.get("/", authenticateToken, async (req, res) => {
 
 /**
  * @swagger
-<<<<<<< dhrumil
  * /cart/{id}:
  *   patch:
  *     summary: Update quantity of a cart item
  *     tags: [Cart]
  */
 router.patch("/:id", authenticateToken, async (req, res) => {
-    try {
-        const { quantity } = req.body;
-        const { id } = req.params;
+  try {
+    const { quantity } = req.body;
+    const { id } = req.params;
 
-        if (quantity < 1) return res.status(400).json({ error: "Quantity must be at least 1" });
+    if (quantity < 1) return res.status(400).json({ error: "Quantity must be at least 1" });
 
-        const { error } = await supabase
-            .from("cart_items")
-            .update({ quantity })
-            .eq("id", id)
-            .eq("user_id", req.user.user_id);
+    const { error } = await supabase
+      .from("cart_items")
+      .update({ quantity })
+      .eq("id", id)
+      .eq("user_id", req.user.user_id);
 
-        if (error) throw error;
-        return res.json({ message: "Quantity updated" });
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
-    }
+    if (error) throw error;
+    return res.json({ message: "Quantity updated" });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 /**
  * @swagger
  * /cart/{id}:
-=======
- * /cart/{variant_id}:
->>>>>>> main
  *   delete:
- *     summary: Remove variant from cart
+ *     summary: Remove item from cart
  *     tags: [Cart]
-<<<<<<< dhrumil
-=======
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: variant_id
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
@@ -284,7 +260,6 @@ router.patch("/:id", authenticateToken, async (req, res) => {
  *     responses:
  *       200:
  *         description: Item removed
->>>>>>> main
  */
 router.delete("/:id", authenticateToken, async (req, res) => {
   try {
