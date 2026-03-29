@@ -55,13 +55,13 @@ const FAQPage = () => {
             transition={{ duration: 0.6 }}
             className="max-w-3xl mx-auto"
           >
-            <h1 className="font-display text-4xl md:text-6xl font-semibold mb-4 text-center">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold mb-4 text-center">
               Frequently Asked Questions
             </h1>
             <p className="text-muted-foreground text-lg text-center mb-12">
               Find answers to common questions about our products and services.
             </p>
-            
+
             <Accordion type="single" collapsible className="space-y-4">
               {faqs.map((faq, index) => (
                 <AccordionItem

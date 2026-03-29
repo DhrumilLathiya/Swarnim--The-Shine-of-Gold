@@ -23,7 +23,7 @@ const HeroSection = () => {
             <span className="inline-block text-sm font-semibold tracking-[0.3em] uppercase text-accent mb-6">
               Handcrafted Elegance
             </span>
-            <h1 className="font-display text-6xl md:text-7xl lg:text-8xl font-semibold leading-[1.1] mb-6">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-semibold leading-[1.1] mb-6">
               The Shine
               <br />
               <span className="text-gradient-gold">of Gold</span>
@@ -44,18 +44,18 @@ const HeroSection = () => {
             </div>
 
             {/* Stats */}
-            <div className="flex gap-14 mt-14 pt-10 border-t border-border">
-              <div>
-                <p className="font-display text-5xl font-semibold text-foreground">25+</p>
-                <p className="text-base text-muted-foreground mt-1">Years Legacy</p>
+            <div className="grid grid-cols-2 sm:flex sm:gap-14 gap-8 mt-14 pt-10 border-t border-border">
+              <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+                <p className="font-display text-3xl sm:text-5xl font-semibold text-foreground">25+</p>
+                <p className="text-xs sm:text-base text-muted-foreground mt-1">Years Legacy</p>
               </div>
-              <div>
-                <p className="font-display text-5xl font-semibold text-foreground">10K+</p>
-                <p className="text-base text-muted-foreground mt-1">Happy Customers</p>
+              <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
+                <p className="font-display text-3xl sm:text-5xl font-semibold text-foreground">10K+</p>
+                <p className="text-xs sm:text-base text-muted-foreground mt-1">Happy Customers</p>
               </div>
-              <div>
-                <p className="font-display text-5xl font-semibold text-foreground">500+</p>
-                <p className="text-base text-muted-foreground mt-1">Unique Designs</p>
+              <div className="flex flex-col items-center sm:items-start text-center sm:text-left col-span-2 sm:col-span-1 border-t sm:border-t-0 pt-4 sm:pt-0">
+                <p className="font-display text-3xl sm:text-5xl font-semibold text-foreground">500+</p>
+                <p className="text-xs sm:text-base text-muted-foreground mt-1">Unique Designs</p>
               </div>
             </div>
           </motion.div>

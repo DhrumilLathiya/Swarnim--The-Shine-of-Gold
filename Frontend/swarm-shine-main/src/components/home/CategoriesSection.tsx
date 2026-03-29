@@ -68,19 +68,19 @@ const CategoriesSection = () => {
                   />
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent" />
-                  
+
                   {/* Content */}
                   <div className="absolute inset-0 p-6 flex flex-col justify-end">
                     <p className="text-sm font-medium tracking-widest uppercase text-gold-light mb-2">
                       {category.count}
                     </p>
-                    <h3 className="font-display text-4xl text-background mb-1">
+                    <h3 className="font-display text-2xl sm:text-3xl md:text-4xl text-background mb-1">
                       {category.name}
                     </h3>
                     <p className="text-background/80 text-base">
                       {category.description}
                     </p>
-                    
+
                     {/* Arrow */}
                     <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-background/10 backdrop-blur-sm flex items-center justify-center transition-all duration-300 group-hover:bg-accent group-hover:text-accent-foreground">
                       <ArrowUpRight className="h-6 w-6 text-background group-hover:text-accent-foreground" />

@@ -219,7 +219,7 @@ const CartPage = () => {
 
                 {/* Summary Sidebar */}
                 <div className="lg:col-span-1">
-                  <div className="sticky top-40 bg-card rounded-3xl border border-border p-8 space-y-6 shadow-sm">
+                  <div className="lg:sticky lg:top-40 bg-card rounded-2xl sm:rounded-3xl border border-border p-6 sm:p-8 space-y-6 shadow-sm">
                     <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
 
                     <div className="space-y-4 text-muted-foreground pt-4">

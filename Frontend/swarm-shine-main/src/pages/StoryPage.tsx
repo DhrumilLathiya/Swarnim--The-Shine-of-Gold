@@ -22,30 +22,30 @@ const StoryPage = () => {
             transition={{ duration: 0.6 }}
             className="max-w-4xl"
           >
-            <h1 className="font-display text-4xl md:text-5xl font-semibold mb-8">Our Story</h1>
-            
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold mb-8">Our Story</h1>
+
             <div className="space-y-8 text-muted-foreground leading-relaxed">
               <p className="text-lg">
-                In 1998, in the heart of Mumbai's bustling jewelry district, Swarnim was born from 
-                a simple dream: to create jewelry that captures the essence of Indian tradition 
+                In 1998, in the heart of Mumbai's bustling jewelry district, Swarnim was born from
+                a simple dream: to create jewelry that captures the essence of Indian tradition
                 while embracing modern elegance.
               </p>
 
               <p>
-                Our founder, with decades of experience in goldsmithing, envisioned a brand that 
-                would make premium gold jewelry accessible to every Indian household. Starting from 
+                Our founder, with decades of experience in goldsmithing, envisioned a brand that
+                would make premium gold jewelry accessible to every Indian household. Starting from
                 a small workshop, we grew through word-of-mouth recommendations from satisfied customers.
               </p>
 
               <p>
-                Today, Swarnim stands as a testament to that vision. With over 50 stores across India 
-                and thousands of happy customers, we continue to craft jewelry that becomes part of 
+                Today, Swarnim stands as a testament to that vision. With over 50 stores across India
+                and thousands of happy customers, we continue to craft jewelry that becomes part of
                 your family's most cherished moments.
               </p>
 
               <p>
-                Every piece of Swarnim jewelry carries with it our commitment to quality, 
-                craftsmanship, and the belief that gold is more than just a metal – it's a 
+                Every piece of Swarnim jewelry carries with it our commitment to quality,
+                craftsmanship, and the belief that gold is more than just a metal – it's a
                 symbol of love, celebration, and tradition.
               </p>
 

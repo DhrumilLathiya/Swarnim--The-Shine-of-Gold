@@ -33,10 +33,10 @@ const SearchPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-12"
           >
-            <h1 className="font-display text-4xl md:text-5xl font-semibold mb-8">Search</h1>
-            
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-semibold mb-6 sm:mb-8">Search</h1>
+
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
               <Input

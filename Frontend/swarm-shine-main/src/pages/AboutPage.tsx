@@ -23,24 +23,24 @@ const AboutPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="font-display text-4xl md:text-6xl font-semibold mb-8">About Swarnim</h1>
-            
+            <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold mb-6 sm:mb-8">About Swarnim</h1>
+
             <div className="grid lg:grid-cols-2 gap-12 mb-16">
               <div>
                 <p className="text-xl text-muted-foreground leading-relaxed mb-6">
-                  For over 25 years, Swarnim has been crafting exquisite gold jewelry that celebrates 
+                  For over 25 years, Swarnim has been crafting exquisite gold jewelry that celebrates
                   the rich heritage of Indian craftsmanship while embracing contemporary design sensibilities.
                 </p>
                 <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                  Our journey began with a simple vision: to create timeless pieces that become 
-                  treasured heirlooms, passed down through generations. Today, we continue to uphold 
+                  Our journey began with a simple vision: to create timeless pieces that become
+                  treasured heirlooms, passed down through generations. Today, we continue to uphold
                   that vision with every piece we craft.
                 </p>
                 <Button asChild size="lg" className="text-base">
                   <Link to="/collections">Explore Our Collection</Link>
                 </Button>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-6">
                 {[
                   { icon: Award, title: "25+ Years", subtitle: "Of Excellence" },

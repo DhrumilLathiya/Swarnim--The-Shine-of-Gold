@@ -129,20 +129,20 @@ const AddressesPage = () => {
 
                         <div className="grid lg:grid-cols-4 gap-8">
                             {/* Sidebar - Consistent with AccountPage */}
-                            <div className="lg:col-span-1 space-y-2">
-                                <Button variant="ghost" className="w-full justify-start gap-3 h-12 text-base" onClick={() => navigate("/account")}>
+                            <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-2 pb-4 sm:pb-0 no-scrollbar mb-6 sm:mb-0">
+                                <Button variant="ghost" className="flex items-center gap-3 p-3 sm:p-4 rounded-lg hover:bg-accent transition-colors text-sm sm:text-base whitespace-nowrap min-w-fit h-auto sm:h-12 sm:justify-start" onClick={() => navigate("/account")}>
                                     <User className="h-5 w-5" /> Profile
                                 </Button>
-                                <Button variant="ghost" className="w-full justify-start gap-3 h-12 text-base" onClick={() => navigate("/orders")}>
+                                <Button variant="ghost" className="flex items-center gap-3 p-3 sm:p-4 rounded-lg hover:bg-accent transition-colors text-sm sm:text-base whitespace-nowrap min-w-fit h-auto sm:h-12 sm:justify-start" onClick={() => navigate("/orders")}>
                                     <Package className="h-5 w-5" /> My Orders
                                 </Button>
-                                <Button variant="ghost" className="w-full justify-start gap-3 h-12 text-base" onClick={() => navigate("/wishlist")}>
+                                <Button variant="ghost" className="flex items-center gap-3 p-3 sm:p-4 rounded-lg hover:bg-accent transition-colors text-sm sm:text-base whitespace-nowrap min-w-fit h-auto sm:h-12 sm:justify-start" onClick={() => navigate("/wishlist")}>
                                     <Heart className="h-5 w-5" /> Wishlist
                                 </Button>
-                                <Button variant="gold" className="w-full justify-start gap-3 h-12 text-base">
+                                <Button variant="gold" className="flex items-center gap-3 p-3 sm:p-4 rounded-lg transition-colors text-sm sm:text-base whitespace-nowrap min-w-fit h-auto sm:h-12 sm:justify-start">
                                     <MapPin className="h-5 w-5" /> Addresses
                                 </Button>
-                                <button onClick={handleLogout} className="flex items-center gap-3 p-4 rounded-lg w-full text-left hover:bg-card transition-colors text-red-500 text-base mt-2">
+                                <button onClick={handleLogout} className="flex items-center gap-3 p-3 sm:p-4 rounded-lg min-w-fit text-left hover:bg-accent transition-colors text-red-500 text-sm sm:text-base whitespace-nowrap mt-0 sm:mt-2">
                                     <LogOut className="h-5 w-5" /> Logout
                                 </button>
                             </div>
@@ -157,8 +157,8 @@ const AddressesPage = () => {
                                 ) : (
                                     <div className="space-y-6">
                                         {!showAddForm && (
-                                            <Button 
-                                                variant="outline" 
+                                            <Button
+                                                variant="outline"
                                                 className="w-full py-8 border-dashed border-2 rounded-2xl flex flex-col gap-2 hover:border-gold hover:bg-gold/5 group"
                                                 onClick={() => setShowAddForm(true)}
                                             >
@@ -180,33 +180,33 @@ const AddressesPage = () => {
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="space-y-2">
                                                                 <Label>Full Name *</Label>
-                                                                <Input value={newAddress.full_name} onChange={e => setNewAddress({...newAddress, full_name: e.target.value})} required placeholder="John Doe" />
+                                                                <Input value={newAddress.full_name} onChange={e => setNewAddress({ ...newAddress, full_name: e.target.value })} required placeholder="John Doe" />
                                                             </div>
                                                             <div className="space-y-2">
                                                                 <Label>Phone Number *</Label>
-                                                                <Input value={newAddress.phone} onChange={e => setNewAddress({...newAddress, phone: e.target.value})} required placeholder="+91 XXXXX XXXXX" />
+                                                                <Input value={newAddress.phone} onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })} required placeholder="+91 XXXXX XXXXX" />
                                                             </div>
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label>Address Line 1 *</Label>
-                                                            <Input value={newAddress.line1} onChange={e => setNewAddress({...newAddress, line1: e.target.value})} required placeholder="House No, Street, Area" />
+                                                            <Input value={newAddress.line1} onChange={e => setNewAddress({ ...newAddress, line1: e.target.value })} required placeholder="House No, Street, Area" />
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label>Address Line 2 (Optional)</Label>
-                                                            <Input value={newAddress.line2} onChange={e => setNewAddress({...newAddress, line2: e.target.value})} placeholder="Landmark, Apartment, etc." />
+                                                            <Input value={newAddress.line2} onChange={e => setNewAddress({ ...newAddress, line2: e.target.value })} placeholder="Landmark, Apartment, etc." />
                                                         </div>
                                                         <div className="grid grid-cols-3 gap-4">
                                                             <div className="space-y-2">
                                                                 <Label>City *</Label>
-                                                                <Input value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} required />
+                                                                <Input value={newAddress.city} onChange={e => setNewAddress({ ...newAddress, city: e.target.value })} required />
                                                             </div>
                                                             <div className="space-y-2">
                                                                 <Label>State *</Label>
-                                                                <Input value={newAddress.state} onChange={e => setNewAddress({...newAddress, state: e.target.value})} required />
+                                                                <Input value={newAddress.state} onChange={e => setNewAddress({ ...newAddress, state: e.target.value })} required />
                                                             </div>
                                                             <div className="space-y-2">
                                                                 <Label>PIN Code *</Label>
-                                                                <Input value={newAddress.postal_code} onChange={e => setNewAddress({...newAddress, postal_code: e.target.value})} required />
+                                                                <Input value={newAddress.postal_code} onChange={e => setNewAddress({ ...newAddress, postal_code: e.target.value })} required />
                                                             </div>
                                                         </div>
                                                         <div className="flex gap-4 pt-4">
@@ -224,11 +224,10 @@ const AddressesPage = () => {
 
                                         <div className="grid md:grid-cols-2 gap-4">
                                             {addresses.map((addr) => (
-                                                <div 
+                                                <div
                                                     key={addr.id}
-                                                    className={`p-6 rounded-2xl border-2 transition-all relative group ${
-                                                        addr.is_default ? "border-gold bg-gold/5 shadow-md" : "border-border hover:border-muted-foreground/30"
-                                                    }`}
+                                                    className={`p-6 rounded-2xl border-2 transition-all relative group ${addr.is_default ? "border-gold bg-gold/5 shadow-md" : "border-border hover:border-muted-foreground/30"
+                                                        }`}
                                                 >
                                                     {addr.is_default && (
                                                         <span className="absolute top-4 right-4 bg-gold text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">Default</span>
@@ -245,14 +244,14 @@ const AddressesPage = () => {
 
                                                     <div className="flex items-center gap-4 pt-2 border-t border-border">
                                                         {!addr.is_default && (
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleSetDefault(addr.id)}
                                                                 className="text-xs font-semibold text-accent hover:underline"
                                                             >
                                                                 Set as Default
                                                             </button>
                                                         )}
-                                                        <button 
+                                                        <button
                                                             onClick={() => handleDeleteAddress(addr.id)}
                                                             className="text-xs font-semibold text-red-500 hover:underline flex items-center gap-1"
                                                         >

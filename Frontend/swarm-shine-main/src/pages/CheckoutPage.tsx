@@ -182,11 +182,10 @@ const CheckoutPage = () => {
                                                     key={addr.id}
                                                     whileTap={{ scale: 0.98 }}
                                                     onClick={() => setSelectedAddressId(addr.id)}
-                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                                                        selectedAddressId === addr.id
+                                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedAddressId === addr.id
                                                             ? "border-gold bg-gold/5 shadow-sm"
                                                             : "border-border hover:border-muted-foreground/30"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <div className="flex items-start justify-between">
                                                         <div>
@@ -225,33 +224,33 @@ const CheckoutPage = () => {
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div>
                                                             <Label className="text-xs">Full Name *</Label>
-                                                            <Input value={newAddress.full_name} onChange={e => setNewAddress({...newAddress, full_name: e.target.value})} className="h-10 mt-1" />
+                                                            <Input value={newAddress.full_name} onChange={e => setNewAddress({ ...newAddress, full_name: e.target.value })} className="h-10 mt-1" />
                                                         </div>
                                                         <div>
                                                             <Label className="text-xs">Phone *</Label>
-                                                            <Input value={newAddress.phone} onChange={e => setNewAddress({...newAddress, phone: e.target.value})} className="h-10 mt-1" />
+                                                            <Input value={newAddress.phone} onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })} className="h-10 mt-1" />
                                                         </div>
                                                     </div>
                                                     <div>
                                                         <Label className="text-xs">Address Line 1 *</Label>
-                                                        <Input value={newAddress.line1} onChange={e => setNewAddress({...newAddress, line1: e.target.value})} className="h-10 mt-1" placeholder="House No, Street" />
+                                                        <Input value={newAddress.line1} onChange={e => setNewAddress({ ...newAddress, line1: e.target.value })} className="h-10 mt-1" placeholder="House No, Street" />
                                                     </div>
                                                     <div>
                                                         <Label className="text-xs">Address Line 2</Label>
-                                                        <Input value={newAddress.line2} onChange={e => setNewAddress({...newAddress, line2: e.target.value})} className="h-10 mt-1" placeholder="Landmark (Optional)" />
+                                                        <Input value={newAddress.line2} onChange={e => setNewAddress({ ...newAddress, line2: e.target.value })} className="h-10 mt-1" placeholder="Landmark (Optional)" />
                                                     </div>
                                                     <div className="grid grid-cols-3 gap-3">
                                                         <div>
                                                             <Label className="text-xs">City *</Label>
-                                                            <Input value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})} className="h-10 mt-1" />
+                                                            <Input value={newAddress.city} onChange={e => setNewAddress({ ...newAddress, city: e.target.value })} className="h-10 mt-1" />
                                                         </div>
                                                         <div>
                                                             <Label className="text-xs">State *</Label>
-                                                            <Input value={newAddress.state} onChange={e => setNewAddress({...newAddress, state: e.target.value})} className="h-10 mt-1" />
+                                                            <Input value={newAddress.state} onChange={e => setNewAddress({ ...newAddress, state: e.target.value })} className="h-10 mt-1" />
                                                         </div>
                                                         <div>
                                                             <Label className="text-xs">PIN Code *</Label>
-                                                            <Input value={newAddress.postal_code} onChange={e => setNewAddress({...newAddress, postal_code: e.target.value})} className="h-10 mt-1" />
+                                                            <Input value={newAddress.postal_code} onChange={e => setNewAddress({ ...newAddress, postal_code: e.target.value })} className="h-10 mt-1" />
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-3 pt-2">
@@ -282,7 +281,7 @@ const CheckoutPage = () => {
 
                             {/* Right: Order Summary */}
                             <div className="lg:col-span-2">
-                                <div className="sticky top-40 bg-card rounded-3xl border border-border p-6 shadow-sm space-y-4">
+                                <div className="lg:sticky lg:top-40 bg-card rounded-2xl sm:rounded-3xl border border-border p-5 sm:p-6 shadow-sm space-y-4">
                                     <h3 className="text-xl font-semibold mb-2">Order Summary</h3>
 
                                     {/* Cart Items Preview */}

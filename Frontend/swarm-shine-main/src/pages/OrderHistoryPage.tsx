@@ -151,22 +151,24 @@ const OrderHistoryPage = () => {
                                             className="p-5 cursor-pointer hover:bg-muted/30 transition-colors"
                                             onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-2.5 bg-muted rounded-xl">
-                                                        <Package className="h-5 w-5 text-muted-foreground" />
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                <div className="flex items-center gap-3 sm:gap-4">
+                                                    <div className="p-2 sm:p-2.5 bg-muted rounded-xl">
+                                                        <Package className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-semibold">Order #{order.id.slice(-8).toUpperCase()}</p>
-                                                        <p className="text-xs text-muted-foreground">{formatDate(order.created_at)} · {order.items.length} item(s)</p>
+                                                        <p className="font-semibold text-sm sm:text-base">Order #{order.id.slice(-8).toUpperCase()}</p>
+                                                        <p className="text-[10px] sm:text-xs text-muted-foreground">{formatDate(order.created_at)} · {order.items.length} item(s)</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4">
-                                                    <span className={`px-3 py-1 text-xs font-bold rounded-full uppercase ${statusColors[order.status] || "bg-gray-100 text-gray-700"}`}>
+                                                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                                                    <span className={`px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold rounded-full uppercase ${statusColors[order.status] || "bg-gray-100 text-gray-700"}`}>
                                                         {order.status}
                                                     </span>
-                                                    <p className="font-bold text-lg">{formatPrice(order.final_amount)}</p>
-                                                    {expandedId === order.id ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                                                    <div className="flex items-center gap-3">
+                                                        <p className="font-bold text-base sm:text-lg">{formatPrice(order.final_amount)}</p>
+                                                        {expandedId === order.id ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

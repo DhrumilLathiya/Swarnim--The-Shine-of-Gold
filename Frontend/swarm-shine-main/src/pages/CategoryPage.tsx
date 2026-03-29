@@ -102,12 +102,12 @@ const CategoryPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-8 sm:mb-12"
           >
-            <h1 className="font-display text-4xl md:text-6xl font-semibold mb-4">
+            <h1 className="font-display text-2xl sm:text-4xl md:text-6xl font-semibold mb-3 sm:mb-4">
               {categoryConfig.title}
             </h1>
-            <p className="text-muted-foreground text-xl">
+            <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-2xl mx-auto">
               {categoryConfig.description}
             </p>
           </motion.div>

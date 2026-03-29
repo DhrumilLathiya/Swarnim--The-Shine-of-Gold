@@ -25,9 +25,9 @@ const ContactPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="font-display text-4xl md:text-6xl font-semibold mb-4">Contact Us</h1>
+            <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold mb-4 text-center sm:text-left">Contact Us</h1>
             <p className="text-muted-foreground text-lg mb-12">We'd love to hear from you. Reach out to us anytime.</p>
-            
+
             <div className="grid lg:grid-cols-2 gap-12">
               {/* Contact Form */}
               <div className="bg-muted/30 rounded-lg p-8">

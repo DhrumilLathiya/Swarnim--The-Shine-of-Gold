@@ -139,7 +139,7 @@ const ProductPage = () => {
                   {product.category}
                 </p>
 
-                <h1 className="font-display text-3xl md:text-5xl font-semibold mb-4">
+                <h1 className="font-display text-2xl sm:text-3xl md:text-5xl font-semibold mb-4 leading-tight">
                   {product.name}
                 </h1>
 
@@ -149,11 +149,10 @@ const ProductPage = () => {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`h-5 w-5 ${
-                          i < Math.round(avgRating)
+                        className={`h-5 w-5 ${i < Math.round(avgRating)
                             ? "text-amber-400 fill-amber-400"
                             : "text-muted"
-                        }`}
+                          }`}
                       />
                     ))}
                     <span className="text-base text-muted-foreground ml-2">
@@ -164,7 +163,7 @@ const ProductPage = () => {
 
                 {/* Price */}
                 <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-semibold">
+                  <span className="text-3xl sm:text-4xl font-semibold">
                     {formatPrice(product.price)}
                   </span>
 
@@ -209,9 +208,8 @@ const ProductPage = () => {
                 <div>
                   <p className="text-base text-muted-foreground">Availability</p>
                   <p
-                    className={`font-medium text-lg ${
-                      product.inStock ? "text-green-600" : "text-red-500"
-                    }`}
+                    className={`font-medium text-lg ${product.inStock ? "text-green-600" : "text-red-500"
+                      }`}
                   >
                     {product.inStock ? "In Stock" : "Out of Stock"}
                   </p>
@@ -220,11 +218,11 @@ const ProductPage = () => {
 
               {/* Actions */}
               <div className="flex flex-col gap-4">
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     variant="gold"
                     size="lg"
-                    className="flex-1 h-14 text-lg font-semibold shadow-md hover:shadow-lg transition-shadow"
+                    className="flex-1 h-12 sm:h-14 text-base sm:text-lg font-semibold shadow-md rounded-xl"
                     onClick={() => addToCart(product.id)}
                     disabled={!product.inStock}
                   >
@@ -236,7 +234,7 @@ const ProductPage = () => {
                     <Button
                       variant="goldOutline"
                       size="lg"
-                      className="w-full h-14 text-lg font-semibold"
+                      className="w-full h-12 sm:h-14 text-base sm:text-lg font-semibold rounded-xl"
                     >
                       <Pencil className="h-5 w-5 mr-2" />
                       Modify Jewelry
@@ -245,9 +243,9 @@ const ProductPage = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button 
-                    variant="goldOutline" 
-                    size="lg" 
+                  <Button
+                    variant="goldOutline"
+                    size="lg"
                     className="flex-1 h-12"
                     onClick={() => {
                       if (isInWishlist(product.id)) {

@@ -99,32 +99,33 @@ const AccountPage = () => {
               <div className="grid md:grid-cols-3 gap-8">
 
                 {/* Sidebar — UNCHANGED */}
-                <div className="space-y-2">
-                  <Link to="/account" className="flex items-center gap-3 p-4 rounded-lg bg-card hover:bg-accent transition-colors text-base">
-                    <User className="h-6 w-6" />
+                {/* Sidebar — Optimized for Mobile */}
+                <div className="flex sm:flex-col overflow-x-auto sm:overflow-visible gap-2 pb-4 sm:pb-0 no-scrollbar">
+                  <Link to="/account" className="flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-card hover:bg-accent transition-colors text-sm sm:text-base whitespace-nowrap min-w-fit">
+                    <User className="h-5 w-5 sm:h-6 sm:w-6" />
                     <span>Profile</span>
                   </Link>
 
-                  <Link to="/orders" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
-                    <Package className="h-6 w-6" />
+                  <Link to="/orders" className="flex items-center gap-3 p-3 sm:p-4 rounded-lg hover:bg-card transition-colors text-sm sm:text-base whitespace-nowrap min-w-fit">
+                    <Package className="h-5 w-5 sm:h-6 sm:w-6" />
                     <span>My Orders</span>
                   </Link>
 
-                  <Link to="/wishlist" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
-                    <Heart className="h-6 w-6" />
+                  <Link to="/wishlist" className="flex items-center gap-3 p-3 sm:p-4 rounded-lg hover:bg-card transition-colors text-sm sm:text-base whitespace-nowrap min-w-fit">
+                    <Heart className="h-5 w-5 sm:h-6 sm:w-6" />
                     <span>Wishlist</span>
                   </Link>
 
-                  <Link to="/addresses" className="flex items-center gap-3 p-4 rounded-lg hover:bg-card transition-colors text-base">
-                    <MapPin className="h-6 w-6" />
+                  <Link to="/addresses" className="flex items-center gap-3 p-3 sm:p-4 rounded-lg hover:bg-card transition-colors text-sm sm:text-base whitespace-nowrap min-w-fit">
+                    <MapPin className="h-5 w-5 sm:h-6 sm:w-6" />
                     <span>Addresses</span>
                   </Link>
 
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 p-4 rounded-lg w-full text-left hover:bg-card transition-colors text-red-500 text-base"
+                    className="flex items-center gap-3 p-3 sm:p-4 rounded-lg min-w-fit text-left hover:bg-card transition-colors text-red-500 text-sm sm:text-base whitespace-nowrap"
                   >
-                    <LogOut className="h-6 w-6" />
+                    <LogOut className="h-5 w-5 sm:h-6 sm:w-6" />
                     <span>Logout</span>
                   </button>
                 </div>
