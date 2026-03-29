@@ -5,9 +5,15 @@
  * USAGE: Used for public catalogue visibility and administrative design management.
  */
 import express from "express";
+<<<<<<< dhrumil
 import { supabase } from "../config/database.js"; // Main DB connection
 import { authorizeRoles } from "../middleware/roleMiddleware.js"; // Access control for admin tasks
 import { authenticateToken } from "../middleware/auth.js"; // Session verification
+=======
+import { supabase } from "../config/database.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
+import { authenticateToken } from "../middleware/auth.js";
+>>>>>>> main
 
 const router = express.Router();
 
@@ -48,7 +54,10 @@ const router = express.Router();
  *       500:
  *         description: Server error
  */
+<<<<<<< dhrumil
 // FETCH ALL: Retrieves a paginated list of active jewelry designs
+=======
+>>>>>>> main
 router.get("/", async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 20, 100);
@@ -77,6 +86,7 @@ router.get("/", async (req, res) => {
 });
 
 
+<<<<<<< dhrumil
 /**
  * ==========================================================
  * 2️⃣ GET SINGLE JEWELLERY
@@ -84,6 +94,15 @@ router.get("/", async (req, res) => {
  */
 
 /**
+=======
+/**
+ * ==========================================================
+ * 2️⃣ GET SINGLE JEWELLERY
+ * ==========================================================
+ */
+
+/**
+>>>>>>> main
  * @swagger
  * /jewellery/{id}:
  *   get:
@@ -132,10 +151,62 @@ router.get("/:id", async (req, res) => {
 });
 
 
+<<<<<<< dhrumil
 /**
  * ==========================================================
  * 3️⃣ CREATE JEWELLERY (Admin Only)
  * ==========================================================
+=======
+/**
+ * ==========================================================
+ * 3️⃣ CREATE JEWELLERY (Admin Only)
+ * ==========================================================
+ */
+
+/**
+ * @swagger
+ * /jewellery:
+ *   post:
+ *     summary: Create jewellery (Admin only)
+ *     tags: [Jewellery]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - category
+ *               - image_url
+ *             properties:
+ *               title:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               image_url:
+ *                 type: string
+ *           example:
+ *             title: "Royal Gold Ring"
+ *             category: "ring"
+ *             description: "Premium handcrafted ring"
+ *             image_url: "https://example.com/ring.jpg"
+ *     responses:
+ *       201:
+ *         description: Jewellery created successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       500:
+ *         description: Server error
+>>>>>>> main
  */
 
 /**
@@ -189,7 +260,11 @@ router.post(
   authorizeRoles("admin"),
   async (req, res) => {
     try {
+<<<<<<< dhrumil
       const { title, category, collection_tag, description, image_url } = req.body;
+=======
+      const { title, category, description, image_url } = req.body;
+>>>>>>> main
 
       if (!title || !category || !image_url) {
         return res.status(400).json({
@@ -202,7 +277,10 @@ router.post(
         .insert([{
           title,
           category,
+<<<<<<< dhrumil
           collection_tag,
+=======
+>>>>>>> main
           description,
           image_url,
           is_active: true

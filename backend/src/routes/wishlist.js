@@ -1,3 +1,4 @@
+<<<<<<< dhrumil
 /**
  * WISHLIST MANAGEMENT ROUTES
  * 
@@ -7,6 +8,11 @@
 import express from "express";
 import { supabase } from "../config/database.js"; // Connection for wishlist table operations
 import { authenticateToken } from "../middleware/auth.js"; // Ensures user is authenticated
+=======
+import express from "express";
+import { supabase } from "../config/database.js";
+import { authenticateToken } from "../middleware/auth.js";
+>>>>>>> main
 
 const router = express.Router();
 
@@ -41,18 +47,28 @@ const router = express.Router();
  *       201:
  *         description: Product added to wishlist
  */
+<<<<<<< dhrumil
 // ADD TO WISHLIST: Records a product-user association in the wishlist table
+=======
+>>>>>>> main
 router.post("/", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
     const { product_id } = req.body;
 
+<<<<<<< dhrumil
     // VALIDATION: Ensure a specific jewelry item is targeted
+=======
+>>>>>>> main
     if (!product_id) {
       return res.status(400).json({ error: "Product ID is required" });
     }
 
+<<<<<<< dhrumil
     // INTEGRITY CHECK: Verify the product actually exists in the catalog
+=======
+    // Validate product exists
+>>>>>>> main
     const { data: product } = await supabase
       .from("jewellery_products")
       .select("id")
@@ -63,13 +79,19 @@ router.post("/", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "Product not found" });
     }
 
+<<<<<<< dhrumil
     // INSERTION: Add the product to the user's favorites list
+=======
+>>>>>>> main
     const { error } = await supabase
       .from("wishlists")
       .insert([{ user_id, product_id }]);
 
     if (error) {
+<<<<<<< dhrumil
       // HANDLE DUPLICATES: Check for unique constraint violation (product already wishlisted)
+=======
+>>>>>>> main
       if (error.code === "23505") {
         return res.status(400).json({ error: "Product already in wishlist" });
       }
@@ -101,6 +123,7 @@ router.get("/", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
 
+<<<<<<< dhrumil
     // 1. Fetch user's wishlist items
     const { data: wishlistItems, error: wishlistError } = await supabase
       .from("wishlists")
@@ -171,6 +194,29 @@ router.get("/", authenticateToken, async (req, res) => {
 
   } catch (err) {
     console.error("DEBUG: Wishlist GET Exception:", err);
+=======
+    const { data, error } = await supabase
+      .from("wishlists")
+      .select(`
+        id,
+        created_at,
+        jewellery_products (
+          id,
+          product_name,
+          final_price,
+          stock_quantity
+        )
+      `)
+      .eq("user_id", user_id);
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(200).json(data);
+
+  } catch (err) {
+>>>>>>> main
     return res.status(500).json({ error: err.message });
   }
 });
@@ -242,6 +288,7 @@ router.post("/:product_id/move-to-cart", authenticateToken, async (req, res) => 
     const user_id = req.user.user_id;
     const { product_id } = req.params;
 
+<<<<<<< dhrumil
     // Fetch product and its first variant
     const { data: product, error: productError } = await supabase
       .from("jewellery_products")
@@ -252,6 +299,12 @@ router.post("/:product_id/move-to-cart", authenticateToken, async (req, res) => 
           stock_quantity
         )
       `)
+=======
+    // Fetch product
+    const { data: product, error: productError } = await supabase
+      .from("jewellery_products")
+      .select("id, final_price, stock_quantity")
+>>>>>>> main
       .eq("id", product_id)
       .single();
 
@@ -259,12 +312,16 @@ router.post("/:product_id/move-to-cart", authenticateToken, async (req, res) => 
       return res.status(404).json({ error: "Product not found" });
     }
 
+<<<<<<< dhrumil
     const primaryVariant = product.product_variants?.[0];
     if (!primaryVariant) {
       return res.status(400).json({ error: "Product has no variants" });
     }
 
     if (primaryVariant.stock_quantity <= 0) {
+=======
+    if (product.stock_quantity <= 0) {
+>>>>>>> main
       return res.status(400).json({ error: "Product out of stock" });
     }
 
@@ -279,7 +336,11 @@ router.post("/:product_id/move-to-cart", authenticateToken, async (req, res) => 
     if (existingCartItem) {
       const newQty = existingCartItem.quantity + 1;
 
+<<<<<<< dhrumil
       if (newQty > primaryVariant.stock_quantity) {
+=======
+      if (newQty > product.stock_quantity) {
+>>>>>>> main
         return res.status(400).json({ error: "Stock exceeded" });
       }
 
@@ -299,7 +360,11 @@ router.post("/:product_id/move-to-cart", authenticateToken, async (req, res) => 
           user_id,
           product_id,
           quantity: 1,
+<<<<<<< dhrumil
           price_snapshot: primaryVariant.additional_price
+=======
+          price_snapshot: product.final_price
+>>>>>>> main
         }]);
 
       if (insertError) {

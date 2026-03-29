@@ -6,10 +6,17 @@
  */
 import express from "express";
 import crypto from "crypto";
+<<<<<<< dhrumil
 import { supabase } from "../config/database.js"; // Connection for direct user table updates
 import { hashPassword, verifyPassword, createAccessToken } from "../utils/auth.js"; // Auth utility helpers
 import { getUserByEmail, createUser, deleteUser } from "../model/User.js"; // User data model abstractions
 import { sendVerificationEmail } from "../services/mailService.js"; // Service for triggered OTP emails
+=======
+import { supabase } from "../config/database.js";
+import { hashPassword, verifyPassword, createAccessToken } from "../utils/auth.js";
+import { getUserByEmail, createUser, deleteUser } from "../model/User.js";
+import { sendVerificationEmail } from "../services/mailService.js";
+>>>>>>> main
 
 const router = express.Router();
 

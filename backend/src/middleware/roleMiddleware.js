@@ -7,7 +7,11 @@
 // ROLE AUTHORIZATION: A factory function that returns a middleware for checking multiple roles
 export const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
+<<<<<<< dhrumil
     // 1. AUTH CHECK: Ensure the user is identified (must be used after authenticateToken)
+=======
+
+>>>>>>> main
     if (!req.user) {
       return res.status(401).json({
         error: "Unauthorized",
@@ -23,10 +27,21 @@ export const authorizeRoles = (...allowedRoles) => {
       });
     }
 
+<<<<<<< dhrumil
     // 3. CASE-INSENSITIVE VALIDATION: Normalize roles to ensure consistent permission checking
     const userRole = req.user.role.toLowerCase();
     const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
 
+=======
+    const userRole = req.user.role.toLowerCase();
+    const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
+
+    console.log("🛡️ Role Check:", {
+      userRole,
+      allowedRoles: normalizedAllowedRoles
+    });
+
+>>>>>>> main
     if (!normalizedAllowedRoles.includes(userRole)) {
       return res.status(403).json({
         error: "Forbidden",

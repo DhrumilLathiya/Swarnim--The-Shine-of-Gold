@@ -5,8 +5,13 @@
  * USAGE: Used by the main website shop page and product detail pages.
  */
 import express from "express";
+<<<<<<< dhrumil
 import { supabase } from "../config/database.js"; // Standard DB connection
 import { validate as isUuid } from "uuid"; // ID validation helper
+=======
+import { supabase } from "../config/database.js";
+import { validate as isUuid } from "uuid";
+>>>>>>> main
 
 const router = express.Router();
 
@@ -48,8 +53,12 @@ const router = express.Router();
  *       200:
  *         description: Paginated product list
  */
+<<<<<<< dhrumil
 // LIST PRODUCTS: Paginated retrieval of jewelry items with optional category filtering
 router.get("/products", async (req, res) => {
+=======
+router.get("/", async (req, res) => {
+>>>>>>> main
   try {
     let page = Number(req.query.page) || 1;
     let limit = Number(req.query.limit) || 10;
@@ -97,6 +106,7 @@ router.get("/products", async (req, res) => {
       });
     }
 
+<<<<<<< dhrumil
     // Map data for backward compatibility
     const mappedData = data.map(item => {
       // Get price from the first variant if available
@@ -109,6 +119,8 @@ router.get("/products", async (req, res) => {
       };
     });
 
+=======
+>>>>>>> main
     return res.status(200).json({
       page,
       limit,
