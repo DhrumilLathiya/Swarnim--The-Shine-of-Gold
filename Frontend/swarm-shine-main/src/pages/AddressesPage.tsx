@@ -41,7 +41,7 @@ const AddressesPage = () => {
         if (!token) { navigate("/account"); return; }
         setIsLoading(true);
         try {
-            const res = await axios.get("http://localhost:3000/addresses", {
+            const res = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/addresses", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAddresses(res.data.data || []);
@@ -67,7 +67,7 @@ const AddressesPage = () => {
 
         setIsSubmitting(true);
         try {
-            const res = await axios.post("http://localhost:3000/addresses", {
+            const res = await axios.post("https://swarnim-the-shine-of-gold.onrender.com/addresses", {
                 ...newAddress,
                 country: "India",
                 is_default: addresses.length === 0
@@ -86,7 +86,7 @@ const AddressesPage = () => {
 
     const handleDeleteAddress = async (id: string) => {
         try {
-            await axios.delete(`http://localhost:3000/addresses/${id}`, {
+            await axios.delete(`https://swarnim-the-shine-of-gold.onrender.com/addresses/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAddresses(addresses.filter(a => a.id !== id));
@@ -98,7 +98,7 @@ const AddressesPage = () => {
 
     const handleSetDefault = async (id: string) => {
         try {
-            await axios.patch(`http://localhost:3000/addresses/${id}/default`, {}, {
+            await axios.patch(`https://swarnim-the-shine-of-gold.onrender.com/addresses/${id}/default`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setAddresses(addresses.map(a => ({ ...a, is_default: a.id === id })));

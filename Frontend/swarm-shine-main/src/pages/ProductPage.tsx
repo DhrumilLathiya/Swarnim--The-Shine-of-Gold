@@ -39,7 +39,7 @@ const ProductPage = () => {
   const { data: reviewData } = useQuery({
     queryKey: ["reviews", id],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:3000/reviews/${id}`);
+      const res = await axios.get(`https://swarnim-the-shine-of-gold.onrender.com/reviews/${id}`);
       return res.data;
     },
     enabled: !!id,
