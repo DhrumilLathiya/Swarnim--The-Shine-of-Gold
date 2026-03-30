@@ -120,7 +120,6 @@ Swarnim enables users to browse jewellery, customize designs using AI, and gener
 - Faster and more accurate AI models  
 
 ---
-
 ## 🧪 How to Run Locally
 
 ### 🔹 Clone Repository
@@ -136,7 +135,6 @@ npm run dev
 cd backend_final
 npm install
 npm run dev
-
 
 📁 Project Structure
 Swarnim--The-Shine-of-Gold/
@@ -155,6 +153,8 @@ Swarnim--The-Shine-of-Gold/
 │
 ├── requirements.txt
 └── README.md
+
+
 👨‍💻 Contributors
 Lathiya Dhrumil – Frontend
 Mehta Raj – Backend & Machine Learning
