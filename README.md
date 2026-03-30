@@ -128,6 +128,16 @@ Swarnim enables users to browse jewellery, customize designs using AI, and gener
 git clone https://github.com/DhrumilLathiya/Swarnim--The-Shine-of-Gold.git
 cd Swarnim--The-Shine-of-Gold
 
+🔹 Run Frontend
+cd Frontend/swarm-shine-main
+npm install
+npm run dev
+🔹 Run Backend
+cd backend_final
+npm install
+npm run dev
+
+
 📁 Project Structure
 Swarnim--The-Shine-of-Gold/
 │
@@ -145,7 +155,6 @@ Swarnim--The-Shine-of-Gold/
 │
 ├── requirements.txt
 └── README.md
-
 👨‍💻 Contributors
 Lathiya Dhrumil – Frontend
 Mehta Raj – Backend & Machine Learning
