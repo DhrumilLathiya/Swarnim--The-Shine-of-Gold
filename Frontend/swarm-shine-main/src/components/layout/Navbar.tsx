@@ -57,7 +57,7 @@ const Navbar = () => {
 
   const getFullImageUrl = (url: string) => {
     if (!url) return "";
-    return url.startsWith("http") ? url : `http://localhost:3000${url}`;
+    return url.startsWith("http") ? url : `https://swarnim-the-shine-of-gold.onrender.com${url}`;
   };
 
   const navLinks: NavCategory[] = [

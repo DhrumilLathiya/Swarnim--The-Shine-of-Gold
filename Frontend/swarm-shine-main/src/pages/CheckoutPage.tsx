@@ -50,7 +50,7 @@ const CheckoutPage = () => {
         const fetchAddresses = async () => {
             if (!token) { setIsLoadingAddresses(false); return; }
             try {
-                const res = await axios.get("http://localhost:3000/addresses", {
+                const res = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/addresses", {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const data = res.data.data || [];
@@ -75,7 +75,7 @@ const CheckoutPage = () => {
             return;
         }
         try {
-            const res = await axios.post("http://localhost:3000/addresses", {
+            const res = await axios.post("https://swarnim-the-shine-of-gold.onrender.com/addresses", {
                 ...newAddress,
                 country: "India",
                 is_default: addresses.length === 0
@@ -105,7 +105,7 @@ const CheckoutPage = () => {
 
         setIsPlacingOrder(true);
         try {
-            const res = await axios.post("http://localhost:3000/orders/checkout", {
+            const res = await axios.post("https://swarnim-the-shine-of-gold.onrender.com/orders/checkout", {
                 shipping_address_id: selectedAddressId,
                 coupon_code: appliedCoupon || undefined
             }, { headers: { Authorization: `Bearer ${token}` } });
@@ -135,7 +135,7 @@ const CheckoutPage = () => {
 
     const getFullImageUrl = (url: string) => {
         if (!url) return "";
-        return url.startsWith("http") ? url : `http://localhost:3000${url}`;
+        return url.startsWith("http") ? url : `https://swarnim-the-shine-of-gold.onrender.com${url}`;
     };
 
     if (!token) {

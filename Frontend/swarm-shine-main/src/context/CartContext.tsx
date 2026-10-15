@@ -31,7 +31,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "https://swarnim-the-shine-of-gold.onrender.com";
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [cart, setCart] = useState<CartItem[]>([]);

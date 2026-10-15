@@ -28,7 +28,7 @@ const CouponOffer = () => {
   const handleOpenScratchCard = async () => {
     try {
       // Fetch a random active coupon from backend
-      const res = await axios.get("http://localhost:3000/coupons/random");
+      const res = await axios.get("https://swarnim-the-shine-of-gold.onrender.com/coupons/random");
       setCouponData(res.data);
       setIsOpen(true);
       sessionStorage.setItem(DISCOUNT_POPUP_SHOWN, "true");
