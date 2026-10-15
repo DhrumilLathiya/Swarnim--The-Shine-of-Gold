@@ -1,4 +1,4 @@
-﻿import "./loadEnv.js";
+import "./loadEnv.js";
 
 import express from "express";
 import cors from "cors";
@@ -15,12 +15,15 @@ const app = express();
 // =============================
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:8080",
+  "http://localhost:3000",
+  "http://127.0.0.1:8080",
   "https://db0dhxt6a9543.cloudfront.net"
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")) {
       callback(null, true);
     } else {
       console.log("âŒ CORS blocked:", origin);
