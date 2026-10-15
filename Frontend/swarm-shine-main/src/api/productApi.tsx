@@ -98,9 +98,9 @@ export const updateProduct = async (id: string, productData: any) => {
 };
 
 // Segment Image (Roboflow)
-export const segmentImage = async (imageUrl: string) => {
+export const segmentImage = async (imageUrl: string, category?: string) => {
   const token = localStorage.getItem("token");
-  const res = await API.post("/ai/segment", { image_url: imageUrl }, {
+  const res = await API.post("/ai/segment", { image_url: imageUrl, category }, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

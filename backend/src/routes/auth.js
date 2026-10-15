@@ -158,7 +158,7 @@ router.post("/register", async (req, res) => {
       .update({
         email_verification_token: otp,
         email_verification_expires: expires,
-        is_verified: false
+        is_verified: false 
       })
       .eq("id", user.id);
 
@@ -173,7 +173,7 @@ router.post("/register", async (req, res) => {
         .from("users")
         .update({ is_verified: true, email_verification_token: null, email_verification_expires: null })
         .eq("id", user.id);
-
+        
       const token = createAccessToken({
         user_id: user.id,
         email: user.email,
@@ -184,9 +184,9 @@ router.post("/register", async (req, res) => {
         message: "User registered successfully (Auto-verified & Logged In).",
         access_token: token,
         token_type: "bearer",
-        user: {
-          id: user.id,
-          name: user.name,
+        user: { 
+          id: user.id, 
+          name: user.name, 
           email: user.email,
           role: user.role
         },
@@ -384,7 +384,7 @@ router.post("/resend-verification", async (req, res) => {
         .from("users")
         .update({ is_verified: true, email_verification_token: null, email_verification_expires: null })
         .eq("id", user.id);
-
+        
       return res.json({ message: "Account automatically verified (Development Bypass)." });
     }
 
@@ -451,6 +451,69 @@ router.get("/verify-email", async (req, res) => {
       .eq("id", user.id);
 
     return res.json({ message: "Email verified successfully. You can now login." });
+
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /auth/verify-otp:
+ *   post:
+ *     summary: Verify email using 6-digit OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *               otp:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ error: "Email and OTP are required" });
+    }
+
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .eq("email_verification_token", otp)
+      .single();
+
+    if (error || !user) {
+      return res.status(400).json({ error: "Invalid OTP or email" });
+    }
+
+    if (new Date(user.email_verification_expires) < new Date()) {
+      return res.status(400).json({ error: "OTP has expired" });
+    }
+
+    await supabase
+      .from("users")
+      .update({
+        is_verified: true,
+        email_verification_token: null,
+        email_verification_expires: null
+      })
+      .eq("id", user.id);
 
     return res.json({ message: "Email verified successfully. You can now login." });
 

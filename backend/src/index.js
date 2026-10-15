@@ -52,9 +52,6 @@ import uploadRoutes from "./routes/upload.js";
 import couponRoutes from "./routes/coupons.js";
 import addressRoutes from "./routes/addresses.js";
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // =============================
 // Swagger Config
 // =============================

@@ -27,10 +27,6 @@ export const authorizeRoles = (...allowedRoles) => {
     const userRole = req.user.role.toLowerCase();
     const normalizedAllowedRoles = allowedRoles.map(r => r.toLowerCase());
 
-    console.log("🛡️ Role Check:", {
-      userRole,
-      allowedRoles: normalizedAllowedRoles
-    });
     if (!normalizedAllowedRoles.includes(userRole)) {
       return res.status(403).json({
         error: "Forbidden",

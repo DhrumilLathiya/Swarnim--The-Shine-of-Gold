@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import multer from "multer";
 import axios from "axios";
 import FormData from "form-data";
@@ -124,7 +124,7 @@ router.post(
  */
 router.post("/segment", async (req, res) => {
   try {
-    const { image_url } = req.body;
+    const { image_url, category } = req.body;
 
     if (!image_url) {
       return res.status(400).json({ error: "image_url is required" });
@@ -150,15 +150,55 @@ router.post("/segment", async (req, res) => {
       return res.status(404).json({ error: "Image file not found" });
     }
 
-    const form = new FormData();
-    form.append("file", fs.createReadStream(filePath));
+    // ROBOFLOW CONFIG (Dynamic selection for Earrings/Bangles vs Ring/Necklace)
+    const isEarringOrBangle =
+      category &&
+      (category.toLowerCase().includes("earring") ||
+       category.toLowerCase().includes("bangle"));
 
-    // ROBFLOW CONFIG
-    const { apiUrl, modelId, version, apiKey } = config.roboflow;
-    const inferenceUrl = `${apiUrl}/${modelId}/${version}?api_key=${apiKey}`;
-    const response = await axios.post(inferenceUrl, form, {
-      headers: form.getHeaders(),
-    });
+    const { apiUrl, apiKey } = config.roboflow;
+
+    let response;
+
+    if (isEarringOrBangle) {
+      // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // Earring / Bangle: uses serverless.roboflow.com with Bearer Auth + base64
+      // Model: swarnim_bangle_earring/11 (rfdetr-seg-nano-t1)
+      // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const earringModelId = "swarnim_bangle_earring";
+      const earringVersion = "11";
+      const serverlessUrl = `https://serverless.roboflow.com/${earringModelId}/${earringVersion}`;
+      
+      console.log(`[Roboflow] Category: '${category}', using SERVERLESS model: '${earringModelId}/${earringVersion}'`);
+      
+      // Read image file and convert to base64
+      const imageBuffer = fs.readFileSync(filePath);
+      const base64Image = imageBuffer.toString("base64");
+
+      response = await axios.post(serverlessUrl, base64Image, {
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        timeout: 30000,
+      });
+    } else {
+      // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // Rings / Necklaces: uses detect.roboflow.com with multipart form
+      // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      const form = new FormData();
+      form.append("file", fs.createReadStream(filePath));
+
+      const activeModelId = config.roboflow.modelId;
+      const activeVersion = config.roboflow.version;
+      const inferenceUrl = `${apiUrl}/${activeModelId}/${activeVersion}?api_key=${apiKey}`;
+      console.log(`[Roboflow] Category: '${category || "default"}', using model: '${activeModelId}/${activeVersion}'`);
+      
+      response = await axios.post(inferenceUrl, form, {
+        headers: form.getHeaders(),
+        timeout: 30000,
+      });
+    }
 
     // Roboflow Inference API returns predictions direct in body
     const predictions = response.data?.predictions || [];
@@ -217,180 +257,136 @@ router.post("/generate-design", async (req, res) => {
       return res.status(400).json({ error: "Prompt is required" });
     }
 
-    const geminiApiKey = config.gemini?.apiKey;
-    if (!geminiApiKey) {
-      return res.status(500).json({ error: "Gemini API key not configured" });
-    }
+    const geminiKey = process.env.GEMINI_API;
+    const modelId = "gemini-3.1-flash-image";
+    let imageBuffer = null;
+    let providerName = "Pollinations.ai";
 
-    // Build the request parts
-    const parts = [];
-
-    // Helper function to process image
-    const processImage = async (url) => {
-      if (!url) return null;
+    // Attempt 1: Google Gemini API (gemini-3.1-flash-image)
+    if (geminiKey) {
       try {
-        const filename = url.split("/").pop().split("?")[0];
-        const filePath = path.join(process.cwd(), "uploads", filename);
-        let imageBase64 = null;
-        let mimeType = "image/png";
+        console.log(`[Gemini] Attempting design generation with '${modelId}'...`);
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateImages?key=${geminiKey}`;
+        const geminiRes = await axios.post(geminiUrl, {
+          prompt: `${prompt}, luxury jewelry, white background, 8k resolution product photo`,
+          number_of_images: 1,
+          aspect_ratio: "1:1",
+          output_mime_type: "image/jpeg"
+        }, { timeout: 40000 });
 
-        if (fs.existsSync(filePath)) {
-          const imageBuffer = fs.readFileSync(filePath);
-          imageBase64 = imageBuffer.toString("base64");
-          const ext = path.extname(filename).toLowerCase();
-          if (ext === ".jpg" || ext === ".jpeg") mimeType = "image/jpeg";
-          else if (ext === ".webp") mimeType = "image/webp";
-        } else if (url.startsWith("http")) {
-          const imgRes = await axios.get(url, { responseType: "arraybuffer" });
-          imageBase64 = Buffer.from(imgRes.data).toString("base64");
-          const contentType = imgRes.headers["content-type"];
-          if (contentType) mimeType = contentType;
+        if (geminiRes.data?.generatedImages?.[0]?.image?.imageBytes) {
+          imageBuffer = Buffer.from(geminiRes.data.generatedImages[0].image.imageBytes, "base64");
+          providerName = "Gemini 3.1 Flash Image";
+          console.log("[Gemini] Successfully generated design image!");
         }
-        return { mimeType, data: imageBase64 };
-      } catch (err) {
-        console.warn(`Could not load image ${url}:`, err.message);
-        return null;
-      }
-    };
-
-    // 1. Add Original Image (if provided)
-    const originalImage = await processImage(original_image_url);
-    if (originalImage) {
-      parts.push({ text: "ORIGINAL JEWELRY REFERENCE (CLEAN):" });
-      parts.push({
-        inlineData: {
-            mimeType: originalImage.mimeType,
-            data: originalImage.data,
-          },
-      });
-    }
-
-    // 2. Add Edited/Segmented Image (if provided)
-    const segmentedImage = await processImage(reference_image_url);
-    if (segmentedImage) {
-      parts.push({ text: "MODIFICATION MASK/REFERENCE (SEGMENTED):" });
-      parts.push({
-        inlineData: {
-            mimeType: segmentedImage.mimeType,
-            data: segmentedImage.data,
-          },
-      });
-    }
-
-    // Add the text prompt
-    parts.push({
-      text: `You are a luxury jewelry design AI. 
-      
-      Inputs provided:
-      1. ORIGINAL PHOTO: A clean photo of the base jewelry piece.
-      2. MODIFICATION REFERENCE: A version with colored segmentation masks indicating which parts to modify.
-      
-      Your Task:
-      Generate a NEW modified version of the original jewelry piece following these instructions:
-      ${prompt}
-      
-      IMPORTANT: Generate a photorealistic, high-quality luxury jewelry product image. Maintain the same lighting, perspective, and background style as the original photo, but apply the requested modifications precisely where indicated. The output must be a single stunning jewelry photograph.`,
-    });
-
-    // Call Gemini API
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${geminiApiKey}`;
-
-    console.log("[Gemini] Generating design with prompt:", prompt.substring(0, 100) + "...");
-
-    const geminiResponse = await axios.post(
-      geminiUrl,
-      {
-        contents: [
-          {
-            parts: parts,
-          },
-        ],
-        generationConfig: {
-          responseModalities: ["TEXT", "IMAGE"],
-        },
-      },
-      {
-        headers: { "Content-Type": "application/json" },
-        timeout: 120000, // 2 minute timeout for image generation
-      }
-    );
-
-    // Extract the generated image from the response
-    const candidates = geminiResponse.data?.candidates;
-    if (!candidates || candidates.length === 0) {
-      throw new Error("No response from Gemini");
-    }
-
-    const responseParts = candidates[0]?.content?.parts || [];
-    let generatedImageBase64 = null;
-    let generatedMimeType = "image/png";
-
-    for (const part of responseParts) {
-      if (part.inlineData) {
-        generatedImageBase64 = part.inlineData.data;
-        generatedMimeType = part.inlineData.mimeType || "image/png";
-        break;
+      } catch (geminiErr) {
+        const msg = geminiErr.response?.data?.error?.message || geminiErr.message;
+        console.warn("[Gemini] API notice:", msg);
+        console.log("[Fallback] Using Pollinations.ai Image-to-Image reference model...");
       }
     }
 
-    if (!generatedImageBase64) {
-      throw new Error("Gemini did not return an image. Response: " + JSON.stringify(responseParts.map(p => p.text || "[image]")));
+    // Attempt 2: Fallback to Pollinations.ai (Image-to-Image reference with auto-retry)
+    if (!imageBuffer) {
+      const encodedPrompt = encodeURIComponent(
+        `${prompt}, luxury jewelry, white background, professional product photo, 8k photorealistic`
+      );
+      const seed = Math.floor(Math.random() * 2147483647);
+      const refImage = reference_image_url || original_image_url;
+
+      let pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`;
+      if (refImage && refImage.startsWith("http")) {
+        pollinationsUrl += `&image=${encodeURIComponent(refImage)}`;
+        console.log("[Pollinations] Using Image-to-Image reference:", refImage);
+      }
+
+      console.log("[Pollinations] Generating design...");
+      try {
+        const imgRes = await axios.get(pollinationsUrl, {
+          responseType: "arraybuffer",
+          timeout: 120000,
+          headers: { "Accept": "image/*" },
+        });
+
+        if (imgRes.data && imgRes.data.byteLength > 1000) {
+          imageBuffer = Buffer.from(imgRes.data);
+        }
+      } catch (pollErr) {
+        console.warn("[Pollinations] Reference URL fetch failed, retrying text generation...", pollErr.message);
+        // Retry Pollinations without image param
+        const fallbackUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&nologo=true&seed=${seed}`;
+        const imgRes = await axios.get(fallbackUrl, {
+          responseType: "arraybuffer",
+          timeout: 120000,
+          headers: { "Accept": "image/*" },
+        });
+        if (imgRes.data && imgRes.data.byteLength > 1000) {
+          imageBuffer = Buffer.from(imgRes.data);
+        }
+      }
+
+      if (!imageBuffer || imageBuffer.byteLength < 1000) {
+        throw new Error("Pollinations returned empty or invalid image");
+      }
     }
 
-    // Save the generated image to uploads folder
-    const ext = generatedMimeType.includes("jpeg") ? ".jpg" : generatedMimeType.includes("webp") ? ".webp" : ".png";
-    const outputFilename = `gemini-${Date.now()}-${Math.floor(Math.random() * 1000000)}${ext}`;
+    const outputFilename = `design-${Date.now()}-${Math.floor(Math.random() * 1000000)}.jpg`;
     const outputPath = path.join(process.cwd(), "uploads", outputFilename);
 
-    fs.writeFileSync(outputPath, Buffer.from(generatedImageBase64, "base64"));
-    console.log("[Gemini] Image saved locally:", outputFilename);
+    fs.writeFileSync(outputPath, imageBuffer);
+    console.log(`[${providerName}] Image saved:`, outputFilename, `(${imageBuffer.byteLength} bytes)`);
 
-    // 1. Upload to Supabase Storage
+    // Upload to Supabase Storage
     let finalImageUrl = `http://localhost:${config.port || 3000}/uploads/${outputFilename}`;
     try {
       const supabaseUrl = await uploadFileToSupabase(outputPath, "designs");
       if (supabaseUrl) finalImageUrl = supabaseUrl;
-      console.log("[Supabase] Uploaded to storage:", finalImageUrl);
+      console.log("[Supabase] Uploaded:", finalImageUrl);
     } catch (storageErr) {
-      console.warn("[Supabase] Storage upload failed, using local URL:", storageErr.message);
+      console.warn("[Supabase] Upload failed, using local URL:", storageErr.message);
     }
 
-    // 2. Save metadata to jewelry_designs table
+    // Save metadata to database
     try {
       if (req.user?.id) {
         await saveDesignMetadata({
           user_id: req.user.id,
-          prompt: prompt,
+          prompt,
           original_image_url: original_image_url || null,
           mask_image_url: reference_image_url || null,
-          generated_image_url: finalImageUrl
+          generated_image_url: finalImageUrl,
         });
-        console.log("[Supabase] Design metadata saved to database");
+        console.log("[DB] Design metadata saved");
       }
     } catch (dbErr) {
-      console.error("[Supabase] Database save failed:", dbErr.message);
+      console.error("[DB] Save failed:", dbErr.message);
     }
 
-    // 3. Final Cleanup: Delete the local temporary generated file
+    // Cleanup local file
     if (fs.existsSync(outputPath)) {
-        try {
-            fs.unlinkSync(outputPath);
-        } catch (unlinkErr) {
-            console.warn("[Cleanup] Failed to delete generated file:", unlinkErr.message);
-        }
+      try { fs.unlinkSync(outputPath); } catch (_) {}
     }
 
     return res.json({
       message: "Design generated successfully",
       image_url: finalImageUrl,
+      provider: providerName,
     });
+
   } catch (error) {
-    console.error("[Gemini] Generation error:", error.response?.data || error.message);
+    let errorDetail = error.message;
+    if (error.response?.data) {
+      errorDetail = Buffer.isBuffer(error.response.data)
+        ? error.response.data.toString("utf-8")
+        : typeof error.response.data === "object"
+        ? JSON.stringify(error.response.data)
+        : String(error.response.data);
+    }
+    console.error("[Generate] Error:", errorDetail);
     return res.status(500).json({
       error: "Design generation failed",
-      detail: error.response?.data?.error?.message || error.message,
+      detail: errorDetail,
     });
   }
 });
-
-export default router;
+export default router;;

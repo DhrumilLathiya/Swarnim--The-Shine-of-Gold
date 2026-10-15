@@ -5,7 +5,6 @@
  * USAGE: Used by AI routes (e.g., src/routes/ai.js) and user history views to track design tasks.
  */
 import { supabase } from "../config/database.js"; // Uses the administrative Supabase client for history logs
-import { v4 as uuidv4 } from "uuid";
 
 // STATUS CONSTANTS: Defines the allowed states for an AI generation task
 const VALID_STATUS = ["pending", "processing", "completed", "failed"];

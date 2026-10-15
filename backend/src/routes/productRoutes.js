@@ -85,7 +85,21 @@ router.get("/products", async (req, res) => {
       .range(from, to);
 
     if (category) {
-      query = query.ilike("category", `%${category}%`);
+      const cat = category.toLowerCase().trim();
+      if (cat === "ring" || cat === "rings") {
+        // Prevent 'earrings' from matching 'ring'
+        query = query.or("category.ilike.ring,category.ilike.rings");
+      } else if (cat.startsWith("earring")) {
+        query = query.or("category.ilike.earring,category.ilike.earrings");
+      } else if (cat.startsWith("necklace")) {
+        query = query.or("category.ilike.necklace,category.ilike.necklaces");
+      } else if (cat.startsWith("bangle")) {
+        query = query.or("category.ilike.bangle,category.ilike.bangles");
+      } else if (cat.startsWith("bracelet")) {
+        query = query.or("category.ilike.bracelet,category.ilike.bracelets");
+      } else {
+        query = query.ilike("category", `%${cat}%`);
+      }
     }
 
     const { data, error, count } = await query;

@@ -1,11 +1,11 @@
-{
+﻿{
   "name": "backend",
   "version": "1.0.0",
   "type": "module",
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "dev": "node src/index.js"
+    "dev": "nodemon src/index.js"
   },
   "keywords": [],
   "author": "",
@@ -25,5 +25,8 @@
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

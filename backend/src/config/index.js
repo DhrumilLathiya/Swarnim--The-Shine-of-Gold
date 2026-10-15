@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CENTRAL APPLICATION CONFIGURATION
  * 
  * PURPOSE: Consolidates all environment variables into a single, organized configuration object.
@@ -32,11 +32,18 @@ export const config = {
     apiKey: process.env.ROBOFLOW_API_KEY,
     modelId: process.env.ROBOFLOW_MODEL_ID,
     version: process.env.ROBOFLOW_VERSION,
+    earringModelId: process.env.ROBOFLOW_EARRING_MODEL_ID || "swarnim_bangle_earring",
+    earringVersion: process.env.ROBOFLOW_EARRING_VERSION || "1",
   },
 
   // GOOGLE GEMINI: API key for the generative AI features
   gemini: {
     apiKey: process.env.GEMINI_API,
+  },
+
+  // BLACK FOREST LABS (FLUX): High-quality AI image generation
+  bfl: {
+    apiKey: process.env.BFL_API_KEY,
   },
 
   // MAIL SERVICE: SMTP settings for sending transactional emails (OTP, etc.)

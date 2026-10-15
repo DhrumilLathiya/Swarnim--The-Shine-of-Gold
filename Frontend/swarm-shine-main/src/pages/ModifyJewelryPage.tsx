@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from "react";
+﻿import { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getProductById, segmentImage, uploadRefImage, generateDesign } from "@/api/productApi";
@@ -60,6 +60,16 @@ import imgCoinPendant from "@/assets/pendants/7-coin-pendant.png";
 import imgGeometricPendant from "@/assets/pendants/8-geometric-pendant.png";
 import imgFlowerPendant from "@/assets/pendants/9-flower-pendant.png";
 import imgGodPendant from "@/assets/pendants/10-god-pendant.png";
+import imgHaloStud from "@/assets/studs/1-halo-stud.jpg";
+import imgBallButtonStud from "@/assets/studs/2-ball-button-stud.jpg";
+import imgBezelSetStud from "@/assets/studs/3-bezel-set-stud.jpg";
+import imgClusterStud from "@/assets/studs/4-cluster-stud.jpg";
+import imgSolitaireStud from "@/assets/studs/5-solitaire-stud.jpg";
+import imgGeometricStud from "@/assets/studs/6-geometric-stud.jpg";
+import imgPearlStud from "@/assets/studs/7-pearl-stud.jpg";
+import imgEarJacketStud from "@/assets/studs/8-ear-jacket-stud.jpg";
+import imgEarClimberStud from "@/assets/studs/9-ear-climber-stud.jpg";
+import imgShapedStud from "@/assets/studs/10-shaped-stud.jpg";
 
 // ─── Segment swap options per class ────────────────────────────────────────
 type SwapOption = {
@@ -72,6 +82,26 @@ type SwapOption = {
 };
 
 const SWAP_OPTIONS: Record<string, SwapOption[]> = {
+    post: [
+        { label: "18K Yellow Gold", color: "#d4af37" },
+        { label: "18K White Gold", color: "#e8e8e8" },
+        { label: "18K Rose Gold", color: "#b76e79" },
+        { label: "Platinum", color: "#e5e4e2" },
+        { label: "Screw Back", color: "#c9a96e" },
+        { label: "Push Back", color: "#a0a0a0" },
+    ],
+    stud: [
+        { label: "Halo Stud", color: "#c0392b", image: imgHaloStud },
+        { label: "Ball / Button Stud", color: "#ffd700", image: imgBallButtonStud },
+        { label: "Bezel-Set Stud", color: "#8e44ad", image: imgBezelSetStud },
+        { label: "Cluster Stud", color: "#27ae60", image: imgClusterStud },
+        { label: "Solitaire Stud", color: "#d4af37", image: imgSolitaireStud },
+        { label: "Geometric Stud", color: "#d4af37", image: imgGeometricStud, needsInput: true, inputLabel: "Enter specific geometric shape (e.g. Hexagon, Octagon, Triangle, Rhombus)" },
+        { label: "Pearl Stud", color: "#f8f0e8", image: imgPearlStud },
+        { label: "Ear Jacket Stud", color: "#2980b9", image: imgEarJacketStud },
+        { label: "Ear Climber Stud", color: "#e8478a", image: imgEarClimberStud },
+        { label: "Shaped Stud", color: "#e8e8e8", image: imgShapedStud, needsInput: true, inputLabel: "Enter specific shape (e.g. Heart, Star, Moon, Butterfly, Flower)" },
+    ],
     stone: [
         { label: "Diamond", color: "#e8e8e8", image: imgDiamond },
         { label: "Ruby", color: "#c0392b", image: imgRuby },
@@ -133,31 +163,52 @@ const getSwapOptions = (className: string) => {
 // ─── Roboflow colour palette ────────────────────────────────────────────────
 const getRoboflowColor = (className: string, index: number) => {
     const palette = [
-        { fill: "rgba(112, 0, 255, 0.45)", stroke: "rgb(112, 0, 255)", text: "#ffffff" }, // Stone: Saturated Purple
-        { fill: "rgba(0, 255, 208, 0.45)", stroke: "rgb(0, 255, 208)", text: "#000000" },  // Band: Neon Cyan
-        { fill: "rgba(0, 255, 208, 0.45)", stroke: "rgb(0, 255, 208)", text: "#000000" },  // Chain: Neon Cyan (Matches Band)
-        { fill: "rgba(255, 0, 80, 0.45)", stroke: "rgb(255, 0, 80)", text: "#ffffff" },   // Pendant: Vibrant Pink
-        { fill: "rgba(251, 146, 60, 0.45)", stroke: "rgb(251, 146, 60)", text: "#ffffff" }, // Misc: Orange
+        { fill: "rgba(112, 0, 255, 0.45)", stroke: "rgb(112, 0, 255)", text: "#ffffff" }, // 0: Stone   â€” Saturated Purple
+        { fill: "rgba(0, 255, 208, 0.45)", stroke: "rgb(0, 255, 208)", text: "#000000" }, // 1: Band    â€” Neon Cyan
+        { fill: "rgba(0, 255, 208, 0.45)", stroke: "rgb(0, 255, 208)", text: "#000000" }, // 2: Chain   â€” Neon Cyan (same as Band)
+        { fill: "rgba(255, 0, 80, 0.45)",  stroke: "rgb(255, 0, 80)",  text: "#ffffff" }, // 3: Pendant â€” Vibrant Pink-Red
+        { fill: "rgba(251, 146, 60, 0.45)",stroke: "rgb(251, 146, 60)",text: "#ffffff" }, // 4: Misc    â€” Orange
+        { fill: "rgba(34, 197, 94, 0.45)", stroke: "rgb(34, 197, 94)", text: "#ffffff" }, // 5: Stud    â€” Bright Green (DISTINCT from pendant)
+        { fill: "rgba(250, 204, 21, 0.45)",stroke: "rgb(250, 204, 21)",text: "#000000" }, // 6: Post    â€” Yellow
     ];
     const lower = className.toLowerCase();
     let colorIndex = index;
-    if (lower.includes("stone")) colorIndex = 0;
-    else if (lower.includes("band")) colorIndex = 1;
-    else if (lower.includes("chain")) colorIndex = 2;
+    if (lower.includes("stone"))   colorIndex = 0;
+    else if (lower.includes("band"))    colorIndex = 1;
+    else if (lower.includes("chain"))   colorIndex = 2;
     else if (lower.includes("pendant") || lower.includes("ant")) colorIndex = 3;
+    else if (lower.includes("stud"))    colorIndex = 5; // Green â€” distinct from pendant (pink)
+    else if (lower.includes("post"))    colorIndex = 6; // Yellow
 
     return palette[colorIndex % palette.length];
 };
 
 const inferClassFromColor = (r: number, g: number, b: number, category: string = "") => {
-    const isNecklace = category.toLowerCase().includes("necklace") || category.toLowerCase().includes("pendant");
+    const lower = category.toLowerCase();
+    const isNecklace  = lower.includes("necklace") || lower.includes("pendant");
+    const isEarring   = lower.includes("earring");
+    const isBangle    = lower.includes("bangle");
+    const isEarOrBangle = isEarring || isBangle;
 
-    // Check against updated Roboflow palette from ref image
+    // Purple  (112, 0, 255) â†’ always Stone
     if (Math.abs(r - 112) < 15 && Math.abs(g - 0) < 15 && Math.abs(b - 255) < 15) return "stone";
+
+    // Cyan    (0, 255, 208) â†’ chain for necklace, band for rings/bangles
     if (Math.abs(r - 0) < 15 && Math.abs(g - 255) < 15 && Math.abs(b - 208) < 15) {
         return isNecklace ? "chain" : "band";
     }
-    if (Math.abs(r - 255) < 15 && Math.abs(g - 0) < 15 && Math.abs(b - 80) < 15) return "pendant";
+
+    // Pink-Red (255, 0, 80) â†’ stud for earrings/bangles, pendant for necklaces/others
+    if (Math.abs(r - 255) < 15 && Math.abs(g - 0) < 15 && Math.abs(b - 80) < 15) {
+        return isEarOrBangle ? "stud" : "pendant";
+    }
+
+    // Green (34, 197, 94) â†’ stud (earring manual brush color)
+    if (Math.abs(r - 34) < 20 && Math.abs(g - 197) < 20 && Math.abs(b - 94) < 20) return "stud";
+
+    // Yellow (250, 204, 21) â†’ post
+    if (Math.abs(r - 250) < 20 && Math.abs(g - 204) < 20 && Math.abs(b - 21) < 20) return "post";
+
     return null;
 };
 
@@ -230,7 +281,9 @@ const MaskedImage = forwardRef<any, MaskedImageProps>(({
             return new Promise((resolve) => {
                 offscreen.toBlob((blob) => resolve(blob), "image/png");
             });
-        }
+        },
+        getImageElement: () => imgRef.current,
+        getBrushCanvas: () => brushCanvasRef.current,
     }));
 
     const drawMasks = useCallback(() => {
@@ -640,6 +693,150 @@ const SegmentPopup = ({ pred, screenX, screenY, onClose, onSelect }: SegmentPopu
 };
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════
+// 2D LAYERED CONFIGURATOR ENGINE
+// Composites realistic gemstone, metal, stud, and pendant layers directly
+// onto the original photograph using canvas polygon blending.
+// ═════════════════════════════════════════════════════════════════════════
+const render2DConfiguredDesign = async (
+    img: HTMLImageElement,
+    predictions: any[],
+    selectedOptions: Record<string, SwapOption & { userInput?: string }>,
+    brushCanvas?: HTMLCanvasElement | null
+): Promise<string> => {
+    return new Promise((resolve) => {
+        const naturalW = img.naturalWidth || img.clientWidth || 1000;
+        const naturalH = img.naturalHeight || img.clientHeight || 1000;
+
+        const offscreen = document.createElement("canvas");
+        offscreen.width = naturalW;
+        offscreen.height = naturalH;
+        const ctx = offscreen.getContext("2d");
+        if (!ctx) {
+            resolve(img.src);
+            return;
+        }
+
+        // 1. Draw base photo at crisp native resolution
+        ctx.drawImage(img, 0, 0, naturalW, naturalH);
+
+        const loadImage = (src: string): Promise<HTMLImageElement> => {
+            return new Promise((res) => {
+                const i = new Image();
+                i.crossOrigin = "anonymous";
+                i.onload = () => res(i);
+                i.onerror = () => res(i);
+                i.src = src;
+            });
+        };
+
+        const processLayers = async () => {
+            for (const pred of predictions) {
+                if (!pred.points || pred.points.length < 3) continue;
+
+                const predClass = pred.class.toLowerCase();
+                const matchedKey = Object.keys(selectedOptions).find(k =>
+                    predClass.includes(k.toLowerCase()) || k.toLowerCase().includes(predClass)
+                );
+                if (!matchedKey) continue;
+                const option = selectedOptions[matchedKey];
+                if (!option) continue;
+
+                // Calculate polygon bounding box
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                pred.points.forEach((p: any) => {
+                    if (p.x < minX) minX = p.x;
+                    if (p.x > maxX) maxX = p.x;
+                    if (p.y < minY) minY = p.y;
+                    if (p.y > maxY) maxY = p.y;
+                });
+                const boxW = Math.max(1, maxX - minX);
+                const boxH = Math.max(1, maxY - minY);
+                const centerX = minX + boxW / 2;
+                const centerY = minY + boxH / 2;
+
+                // ── LAYER 1: Color Recolor / Metallic Tint ──
+                if (option.color) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(pred.points[0].x, pred.points[0].y);
+                    for (let i = 1; i < pred.points.length; i++) {
+                        ctx.lineTo(pred.points[i].x, pred.points[i].y);
+                    }
+                    ctx.closePath();
+                    ctx.clip();
+
+                    // "color" blend preserves photographic luminance, shadows & natural reflections
+                    ctx.globalCompositeOperation = "color";
+                    ctx.fillStyle = option.color;
+                    ctx.fillRect(minX, minY, boxW, boxH);
+
+                    // Add rich depth for gemstones and metals
+                    ctx.globalCompositeOperation = "multiply";
+                    ctx.globalAlpha = 0.28;
+                    ctx.fillStyle = option.color;
+                    ctx.fillRect(minX, minY, boxW, boxH);
+
+                    // Gemstone brilliant sparkle pass
+                    if (predClass.includes("stone")) {
+                        ctx.globalCompositeOperation = "screen";
+                        ctx.globalAlpha = 0.38;
+                        const grad = ctx.createRadialGradient(
+                            minX + boxW * 0.35, minY + boxH * 0.35, 2,
+                            centerX, centerY, Math.max(boxW, boxH) * 0.75
+                        );
+                        grad.addColorStop(0, "#ffffff");
+                        grad.addColorStop(0.4, option.color);
+                        grad.addColorStop(1, "transparent");
+                        ctx.fillStyle = grad;
+                        ctx.fillRect(minX, minY, boxW, boxH);
+                    }
+                    ctx.restore();
+                }
+
+                // ── LAYER 2: Stud / Pendant Image Overlay ──
+                if (option.image && (predClass.includes("stud") || predClass.includes("pendant"))) {
+                    try {
+                        const overlayImg = await loadImage(option.image);
+                        if (overlayImg.complete && overlayImg.naturalWidth > 0) {
+                            ctx.save();
+                            // Soft ambient occlusion shadow under the new design
+                            ctx.shadowColor = "rgba(0, 0, 0, 0.30)";
+                            ctx.shadowBlur = Math.min(boxW, boxH) * 0.20;
+                            ctx.shadowOffsetX = 2;
+                            ctx.shadowOffsetY = 4;
+
+                            const targetSize = Math.max(boxW, boxH) * 1.08;
+                            ctx.drawImage(
+                                overlayImg,
+                                centerX - targetSize / 2,
+                                centerY - targetSize / 2,
+                                targetSize,
+                                targetSize
+                            );
+                            ctx.restore();
+                        }
+                    } catch (e) {
+                        console.warn("Overlay composite error:", e);
+                    }
+                }
+            }
+
+            // ── LAYER 3: Manual brush strokes (if any) ──
+            if (brushCanvas && brushCanvas.width > 0) {
+                ctx.save();
+                ctx.globalAlpha = 0.65;
+                ctx.drawImage(brushCanvas, 0, 0, naturalW, naturalH);
+                ctx.restore();
+            }
+
+            resolve(offscreen.toDataURL("image/png"));
+        };
+
+        processLayers();
+    });
+};
+
 const ModifyJewelryPage = () => {
     const { id } = useParams();
     const { toast } = useToast();
@@ -663,6 +860,7 @@ const ModifyJewelryPage = () => {
 
     // Choices per segment class (e.g. stone: "Diamond")
     const [selectedChoices, setSelectedChoices] = useState<Record<string, string>>({});
+    const [selectedOptions, setSelectedOptions] = useState<Record<string, SwapOption & { userInput?: string }>>({});
     const [visionaryPrompt, setVisionaryPrompt] = useState("");
     const [segmentedRefUrl, setSegmentedRefUrl] = useState<string | null>(null);
     const [originalRefUrl, setOriginalRefUrl] = useState<string | null>(null);
@@ -682,7 +880,7 @@ const ModifyJewelryPage = () => {
             if (product?.image) {
                 setIsSegmenting(true);
                 try {
-                    const res = await segmentImage(product.image);
+                    const res = await segmentImage(product.image, product.category);
                     if (res.predictions) setPredictions(res.predictions);
                 } catch (e) {
                     console.error("Seg failed", e);
@@ -701,25 +899,193 @@ const ModifyJewelryPage = () => {
     };
 
     const handleSwapSelect = (className: string, option: SwapOption, userInput?: string) => {
-        const choiceValue = userInput || option.label;
+        const choiceValue = userInput
+            ? (userInput.toLowerCase().includes(option.label.toLowerCase()) ? userInput : `${userInput} ${option.label}`)
+            : option.label;
         setSelectedChoices(prev => ({ ...prev, [className]: choiceValue }));
+        setSelectedOptions(prev => ({ ...prev, [className]: { ...option, userInput } }));
         console.log("Swap", className, "→", choiceValue);
     };
 
-    const handleGeneratePrompt = async () => {
+    // â”€â”€â”€ Professional Structured Prompt Builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    const buildStructuredPrompt = (
+        overrides?: { customText?: string }
+    ): string => {
+        const name = product?.name || "Jewelry Piece";
+        const category = product?.category || "jewelry";
+        
+        const productTypeMap: Record<string, string> = {
+            ring: "Ring", rings: "Ring", earring: "Earring", earrings: "Earring",
+            necklace: "Necklace", necklaces: "Necklace", bangle: "Bangle",
+            bangles: "Bangle", bracelet: "Bracelet", pendant: "Pendant",
+        };
+        const productType = productTypeMap[category.toLowerCase()] || name;
+
+        // Build dynamic modification blocks
+        let modificationBlocks = "";
+        let modIndex = 1;
+
+        for (const [className, value] of Object.entries(selectedChoices)) {
+            const lowerClass = className.toLowerCase();
+            let actionText = `Replace the existing ${lowerClass} with a ${value} ${lowerClass}.`;
+            let designText = `Apply the ${value} design/material to this region.`;
+            let preserveText = `Keep the original ${lowerClass} position, overall dimensions, and connection to the rest of the jewelry.`;
+            let notModifyText = `Do NOT modify the other components of the jewelry.`;
+            
+            if (lowerClass === "stone" || lowerClass === "gemstone") {
+                actionText = `Replace the existing gemstone appearance with an ${value} gemstone.`;
+                designText = `Use a premium realistic ${value} with rich coloration, natural gemstone facets, realistic transparency, refraction, internal reflections, and polished highlights.`;
+                preserveText = `Keep the original gemstone's position, size, orientation, and relationship to its setting.`;
+                notModifyText = `The band, setting, metal structure, or any other component.`;
+            } else if (lowerClass === "band") {
+                actionText = `Replace the existing band design with a ${value} band design.`;
+                designText = `Create an elegant ${value} band structure with realistic metal geometry, smooth curves, precise craftsmanship, and natural integration with the existing setting.`;
+                preserveText = `Keep the original band position, overall dimensions, ring proportions, and connection to the gemstone setting.`;
+                notModifyText = `The gemstone, gemstone setting, or any other component.`;
+            } else if (lowerClass === "chain") {
+                actionText = `Replace the existing chain design with a ${value} chain.`;
+                designText = `Create a realistic ${value} chain structure with accurate metal links and natural integration with the pendant or clasps.`;
+            } else if (lowerClass === "pendant") {
+                actionText = `Replace the existing pendant design with a ${value} pendant.`;
+                designText = `Create an elegant ${value} pendant structure with realistic metal geometry and natural integration.`;
+            } else if (lowerClass === "post") {
+                actionText = `Replace the existing post/metal with ${value}.`;
+                designText = `Apply a realistic ${value} metal finish with accurate reflections and surface qualities.`;
+            } else if (lowerClass === "stud") {
+                actionText = `Replace the existing stud design with a ${value} stud.`;
+                designText = `Create an elegant ${value} stud structure with realistic details.`;
+            }
+
+            modificationBlocks += `\nMODIFICATION ${modIndex} â€” ${lowerClass.toUpperCase()}
+
+TARGET REGION:
+${lowerClass.toUpperCase()} SEGMENTATION REGION
+
+ACTION:
+${actionText}
+
+DESIGN:
+${designText}
+
+PRESERVE:
+${preserveText}
+
+DO NOT MODIFY:
+${notModifyText}\n`;
+            modIndex++;
+        }
+
+        if (!modificationBlocks) {
+            modificationBlocks = "No specific modifications selected. Apply overall refinements.";
+        }
+
+        const customSection = overrides?.customText?.trim()
+            ? `\n[ADDITIONAL DESIGNER NOTES]\n${overrides.customText.trim()}\n`
+            : "";
+
+        const prompt = `[ROLE]
+You are a professional luxury jewelry product designer and photorealistic jewelry visualization artist.
+
+[PRODUCT]
+Product Type: ${productType}
+
+[REFERENCE IMAGES]
+REFERENCE 1 â€” ORIGINAL JEWELRY
+Use the original jewelry image as the PRIMARY visual reference.
+The final image must remain the same jewelry product unless a component is explicitly selected for modification.
+
+REFERENCE 2 â€” SEGMENTATION MASK
+Use the segmentation mask to identify the exact editable regions.
+Each labeled/color-coded region represents a specific jewelry component.
+
+IMPORTANT:
+The segmentation mask defines WHERE modifications are allowed.
+Do not modify pixels/components outside the selected regions.
+
+[SELECTED MODIFICATIONS]
+The following are the ONLY requested design changes:
+${modificationBlocks}
+${customSection}
+[MODIFICATION RULES]
+For EVERY selected modification:
+1. Identify the corresponding component in the segmentation mask.
+2. Modify ONLY that component's segmented region.
+3. Apply ONLY the selected design/material/style to that region.
+4. Keep the component's position, scale, and relationship to the jewelry consistent with the original unless the selected design inherently requires a small structural adjustment.
+5. Seamlessly integrate the modified component with the surrounding original jewelry.
+6. Do NOT modify any component that is not explicitly listed under [SELECTED MODIFICATIONS].
+
+[STRICT PRESERVATION]
+Everything not explicitly selected must remain visually unchanged.
+
+Preserve:
+- Original jewelry identity
+- Original silhouette
+- Original geometry
+- Original proportions
+- Original orientation
+- Original camera angle
+- Original perspective
+- Original composition
+- Original background
+- Original unselected components
+- Original placement of unselected gemstones
+- Original metal structure outside selected regions
+
+DO NOT:
+- Redesign the entire jewelry
+- Generate a new jewelry product
+- Change unselected gemstones
+- Change unselected metal parts
+- Change unselected components
+- Add extra gemstones
+- Remove existing unselected components
+- Change the jewelry shape unnecessarily
+- Change the camera angle
+- Change the product type
+- Add decorative elements that were not requested
+
+[MATERIAL & CRAFTSMANSHIP]
+The selected modifications must look physically realistic and professionally manufactured.
+Use:
+- Realistic precious-metal surfaces
+- Accurate reflections
+- Realistic gemstone facets
+- Natural gemstone refraction
+- Realistic shadows
+- Precise jewelry craftsmanship
+- Physically plausible connections between modified and original parts
+
+[VISUAL STYLE]
+Luxury jewelry product photography.
+Photorealistic.
+Premium high-end jewelry appearance.
+Professional studio lighting.
+Soft controlled reflections.
+Sharp jewelry details.
+Natural gemstone appearance.
+Clean luxury background.
+
+[FINAL OUTPUT]
+Generate ONE photorealistic image of the customized ${productType}.
+
+IMPORTANT FINAL CONDITION:
+The output must be the ORIGINAL jewelry with ONLY the explicitly selected components modified according to the user's selections.
+Do not reinterpret the request as a complete redesign.`;
+
+        return prompt.trim();
+    };
+const handleGeneratePrompt = async () => {
         if (Object.keys(selectedChoices).length === 0) return;
 
         // 1. Capture and Upload both Original and Segmented Images
         if (maskedImageRef.current) {
             try {
-                // First capture original clean photo
                 const originalBlob = await maskedImageRef.current.captureOriginal();
                 if (originalBlob) {
                     const resOrig = await uploadRefImage(originalBlob);
                     setOriginalRefUrl(resOrig.imageUrl);
                 }
-
-                // Then capture segmented/masked design
                 const segmentedBlob = await maskedImageRef.current.captureComposite();
                 if (segmentedBlob) {
                     const resSeg = await uploadRefImage(segmentedBlob);
@@ -730,34 +1096,77 @@ const ModifyJewelryPage = () => {
             }
         }
 
-        // 2. Build Text Prompt
-        const name = product?.name || "jewelry piece";
-        const category = product?.category || "";
-        const parts = Object.entries(selectedChoices).map(([className, opt]) =>
-            `${opt} ${className}`
-        );
-        let prompt = `A premium custom ${name} ${category} ${parts.join(", ")}. High-end luxury craftsmanship, 8k resolution, cinematic lighting, professional jewelry photography.`.replace(/\s+/g, ' ');
-
-        setVisionaryPrompt(prev => (prev ? prev + "\n" + prompt : prompt));
+        // 2. Build structured professional prompt (show preview to user)
+        const structured = buildStructuredPrompt();
+        setVisionaryPrompt(structured);
     };
 
     const handleGenerateDesign = async () => {
-        if (!visionaryPrompt.trim()) return;
         setIsGenerating(true);
         setGenerationError(null);
         try {
-            const res = await generateDesign(visionaryPrompt, segmentedRefUrl || undefined, originalRefUrl || undefined);
-            if (res.image_url) {
-                setGeneratedImageUrl(res.image_url);
-                // Clear segmentation masks from the Original Vision so user can compare both designs cleanly
+            // Step 1: Build the structured professional prompt
+            // Merge user-edited visionaryPrompt as "Additional Designer Notes" if modified
+            let userNotes = "";
+            const autoPreview = buildStructuredPrompt();
+
+            // If the user has added extra notes beyond the auto-generated template, capture them
+            if (visionaryPrompt.trim() && visionaryPrompt.trim() !== autoPreview) {
+                // User has manually edited â€” treat their full text as the final prompt
+                userNotes = visionaryPrompt.trim();
+            }
+
+            const finalPrompt = userNotes || buildStructuredPrompt();
+
+            if (!finalPrompt.trim() || Object.keys(selectedChoices).length === 0) {
+                throw new Error("Please select a design option or write a custom prompt first.");
+            }
+
+            // Step 2: Upload reference images for Gemini to analyze
+            let uploadedOriginalUrl: string | undefined;
+            let uploadedSegmentedUrl: string | undefined;
+
+            if (maskedImageRef.current) {
+                try {
+                    const originalBlob = await maskedImageRef.current.captureOriginal?.();
+                    if (originalBlob) {
+                        const res = await uploadRefImage(originalBlob);
+                        uploadedOriginalUrl = res.imageUrl;
+                        setOriginalRefUrl(res.imageUrl);
+                    }
+                } catch (uploadErr) {
+                    console.warn("Could not upload original image:", uploadErr);
+                }
+
+                if (predictions.length > 0) {
+                    try {
+                        const segBlob = await maskedImageRef.current.captureComposite?.();
+                        if (segBlob) {
+                            const res = await uploadRefImage(segBlob);
+                            uploadedSegmentedUrl = res.imageUrl;
+                            setSegmentedRefUrl(res.imageUrl);
+                        }
+                    } catch (uploadErr) {
+                        console.warn("Could not upload segmented image:", uploadErr);
+                    }
+                }
+            }
+
+            // Step 3: Call Gemini AI API to generate the real new design image
+            const result = await generateDesign(finalPrompt, uploadedSegmentedUrl, uploadedOriginalUrl);
+
+            if (result?.image_url) {
+                setGeneratedImageUrl(result.image_url);
                 setPredictions([]);
-                setClearTrigger(prev => prev + 1); // Remove manual brush strokes
+                setClearTrigger(prev => prev + 1);
                 setPopup(null);
                 setMode("done");
+            } else {
+                throw new Error("Gemini did not return an image. Please try again.");
             }
         } catch (err: any) {
-            console.error("Design generation failed:", err);
-            setGenerationError(err?.response?.data?.detail || err?.message || "Generation failed. Please try again.");
+            console.error("Gemini AI generation failed:", err);
+            setGenerationError(err?.message || "Generation failed. Please try again.");
         } finally {
             setIsGenerating(false);
         }
@@ -1198,7 +1607,7 @@ const ModifyJewelryPage = () => {
                                             size="lg"
                                             className="text-base sm:text-lg w-full py-5 sm:py-7 h-auto rounded-2xl sm:rounded-[2rem] shadow-xl hover:shadow-gold/40 transition-all group overflow-hidden relative"
                                             onClick={handleGenerateDesign}
-                                            disabled={isGenerating || !visionaryPrompt.trim()}
+                                            disabled={isGenerating || (Object.keys(selectedChoices).length === 0 && !visionaryPrompt.trim())}
                                         >
                                             <Sparkles className={`h-5 w-5 mr-3 ${isGenerating ? 'animate-spin' : 'group-hover:animate-spin'}`} />
                                             {isGenerating ? 'Generating...' : 'Generate Design'}

@@ -17,10 +17,6 @@ const router = express.Router();
  *   description: User-level cart management
  */
 
-/* ==========================================================
-   1️⃣ ADD / UPDATE CART ITEM
- ========================================================== */
-
 /**
  * @swagger
  * /cart:
@@ -85,7 +81,7 @@ router.post("/", authenticateToken, async (req, res) => {
     if (existingItem) {
       // INCREMENT: Update quantity if it doesn't exceed available stock
       const newQty = existingItem.quantity + quantity;
-
+      
       if (newQty > (primaryVariant.stock_quantity || 999)) {
         return res.status(400).json({ error: "Requested quantity exceeds available stock" });
       }
@@ -123,11 +119,6 @@ router.post("/", authenticateToken, async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
-
-
-/* ==========================================================
-   2️⃣ GET CART
-========================================================== */
 
 /**
  * @swagger
@@ -210,11 +201,6 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 });
 
-
-/* ==========================================================
-   3️⃣ REMOVE ITEM FROM CART
-========================================================== */
-
 /**
  * @swagger
  * /cart/{id}:
@@ -223,23 +209,23 @@ router.get("/", authenticateToken, async (req, res) => {
  *     tags: [Cart]
  */
 router.patch("/:id", authenticateToken, async (req, res) => {
-  try {
-    const { quantity } = req.body;
-    const { id } = req.params;
+    try {
+        const { quantity } = req.body;
+        const { id } = req.params;
 
-    if (quantity < 1) return res.status(400).json({ error: "Quantity must be at least 1" });
+        if (quantity < 1) return res.status(400).json({ error: "Quantity must be at least 1" });
 
-    const { error } = await supabase
-      .from("cart_items")
-      .update({ quantity })
-      .eq("id", id)
-      .eq("user_id", req.user.user_id);
+        const { error } = await supabase
+            .from("cart_items")
+            .update({ quantity })
+            .eq("id", id)
+            .eq("user_id", req.user.user_id);
 
-    if (error) throw error;
-    return res.json({ message: "Quantity updated" });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
+        if (error) throw error;
+        return res.json({ message: "Quantity updated" });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
 });
 
 /**
@@ -248,18 +234,6 @@ router.patch("/:id", authenticateToken, async (req, res) => {
  *   delete:
  *     summary: Remove item from cart
  *     tags: [Cart]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Item removed
  */
 router.delete("/:id", authenticateToken, async (req, res) => {
   try {
