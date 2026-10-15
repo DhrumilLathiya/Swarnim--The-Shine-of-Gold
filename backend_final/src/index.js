@@ -1,4 +1,4 @@
-import "./loadEnv.js";
+﻿import "./loadEnv.js";
 
 import express from "express";
 import cors from "cors";
@@ -11,7 +11,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 const app = express();
 
 // =============================
-// ✅ FINAL CORS FIX (CRITICAL)
+// âœ… FINAL CORS FIX (CRITICAL)
 // =============================
 const allowedOrigins = [
   "http://localhost:5173",
@@ -23,7 +23,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log("❌ CORS blocked:", origin);
+      console.log("âŒ CORS blocked:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
@@ -63,7 +63,7 @@ import couponRoutes from "./routes/coupons.js";
 import addressRoutes from "./routes/addresses.js";
 
 // =============================
-// Swagger
+// Swagger Config
 // =============================
 const swaggerOptions = {
   definition: {
@@ -120,6 +120,7 @@ app.use("/notifications", notificationRoutes);
 app.use("/reviews", reviewsRoutes);
 app.use("/coupons", couponRoutes);
 
+// Uploads
 app.use("/upload", uploadRoutes);
 app.use("/uploads", express.static("uploads"));
 
@@ -135,7 +136,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`ðŸš€ Server running on port ${PORT}`);
 });
 
 export default app;
