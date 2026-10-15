@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // Fixed port to 3000
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
 
@@ -36,7 +38,7 @@ const transformProduct = (product: any) => {
     price: product.final_price || primaryVariant.additional_price || 0,
     image: primaryImage && primaryImage.startsWith("http")
       ? primaryImage
-      : `${import.meta.env.VITE_API_URL}${primaryImage}`,
+      : `${API_BASE_URL}${primaryImage}`,
     images: product.product_images?.length
       ? product.product_images.map((img: any) => img.image_url)
       : [product.image_url],
